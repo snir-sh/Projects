@@ -1,0 +1,37 @@
+# setting-up
+minikube start --vm-driver=hyperkit
+kubectl get nodes
+minikube status
+kubectl get pods
+
+
+# deployment - the bluepront of creating pods
+kubectl create deployment nginx-depl --image=nginx
+kubectl get deployment
+kubectl get pod
+kubectl get replicaset
+kubectl edit deployment nginx-depl
+
+kubectl logs nginx-depl-569bd7dcf9-hzwgp
+kubectl exec -it [pod name] -- [command]
+kubectl delete deployment [depl name]
+
+kubectl apply -f config-file.yaml
+kubectl apply -f nginx-deployment.yaml
+kubectl apply -f nginx-service.yaml 
+kubectl get pod
+kubectl get service
+kubectl describe service nginx-service # see the addresses and IPs matches
+kubectl get pod -o wide # more information such as name and IP 
+kubectl get deployment nginx-deployment -o yaml > nginx-deplyment-result.yaml
+
+kubectl apply -f mongo-secret.yaml # dont forget to put the ref in the yaml file
+kubectl get secret
+
+kubectl get namespace
+kubectl create namespace my-namespace 
+kubectl cluster-info     
+kubectl get configmap -n default
+kubectl apply -f mysql-configmap.yaml --namespace=my-namespace
+
+minikube addons enable ingress
