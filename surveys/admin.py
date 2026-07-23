@@ -7,11 +7,17 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
+from django.templatetags.static import static
 from .models import Survey, Question, Response, Answer
 from django.contrib.auth.models import Group
 from django.conf import settings
 import json
 import csv
+
+User = get_user_model()
+
+# Override User.__str__ to display just username in raw_id_fields
+User.__str__ = lambda self: self.username
 
 
 class AnswerInline(admin.TabularInline):
@@ -171,7 +177,6 @@ class AnswerAdmin(admin.ModelAdmin):
 
 # Integrate Group assignment into the Django User admin so that when creating
 # a user an admin can select which single Group they belong to.
-User = get_user_model()
 try:
     admin.site.unregister(User)
 except Exception:
@@ -209,6 +214,9 @@ class CustomUserAdmin(DjangoUserAdmin):
 
     # Hide the default admin list filters on the User changelist (no sidebar filters)
     list_filter = ()
+    
+    # Search by username for raw_id_fields lookups
+    search_fields = ('username',)
 
     def group_name(self, obj):
         """Return the first assigned group name or '-' if none."""
@@ -337,18 +345,27 @@ except Exception:
     pass
 
 
-class UserInline(admin.TabularInline):
-    """Display users belonging to a group."""
-    model = User.groups.through
-    extra = 0
-    fields = ('user_username', 'user_is_active', 'user_is_superuser')
-    readonly_fields = ('user_username', 'user_is_active', 'user_is_superuser')
-    can_delete = False
+class UserInlineForm(forms.ModelForm):
+    """Form for selecting users in group inline - removes add/edit icons."""
+    user = forms.ModelChoiceField(
+        queryset=User.objects.all(),
+        widget=forms.Select(),
+        required=False
+    )
     
-    def user_username(self, obj):
-        """Display username of the user."""
-        return obj.user.username
-    user_username.short_description = _('Username')
+    class Meta:
+        model = User.groups.through
+        fields = ('user',)
+
+
+class UserInline(admin.TabularInline):
+    """Display users belonging to a group - allows adding/removing users."""
+    model = User.groups.through
+    form = UserInlineForm
+    extra = 1
+    fields = ('user', 'user_is_active', 'user_is_superuser')
+    readonly_fields = ('user_is_active', 'user_is_superuser')
+    can_delete = True
     
     def user_is_active(self, obj):
         """Display user active status."""
@@ -372,3 +389,4 @@ class GroupAdmin(DjangoGroupAdmin):
     # Hide permissions field from the admin form
     exclude = ('permissions',)
     inlines = [UserInline]
+    change_form_template = 'admin/auth/group/change_form.html'
