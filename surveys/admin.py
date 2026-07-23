@@ -19,6 +19,9 @@ User = get_user_model()
 # Override User.__str__ to display just username in raw_id_fields
 User.__str__ = lambda self: self.username
 
+# Override User.groups.through.__str__ to display just a dot (minimize first column)
+User.groups.through.__str__ = lambda self: '•'
+
 
 class AnswerInline(admin.TabularInline):
     model = Answer
