@@ -109,9 +109,17 @@ class ResponseAdmin(admin.ModelAdmin):
     export_as_csv.short_description = 'Export selected responses to CSV'
 
 
+class QuestionInline(admin.TabularInline):
+    model = Question
+    extra = 1
+    fields = ('text', 'question_type', 'required', 'is_common')
+    readonly_fields = ('is_common',)
+
+
 @admin.register(Survey)
 class SurveyAdmin(admin.ModelAdmin):
     list_display = ('title', 'created_at', 'results_link')
+    inlines = [QuestionInline]
     
     def results_link(self, obj):
         """Link to view survey results."""
