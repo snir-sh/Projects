@@ -5,17 +5,23 @@
     <h1>Users</h1>
     <form method="post">
       {% csrf_token %}
-      <label>Username: <input type="text" name="username" required></label>
+      {% if error %}
+        <div style="color:crimson;margin-bottom:8px">{{ error }}</div>
+      {% endif %}
+      <label>Username: <input type="text" name="username" value="{{ request.POST.username|default:'' }}" required></label>
       <fieldset>
         <legend>Assign groups</legend>
         {% for g in groups %}
-          <label><input type="checkbox" name="groups" value="{{ g.id }}"> {{ g.name }}</label><br>
+          <label><input type="checkbox" name="groups" value="{{ g.id }}" {% if presel and g.id in presel %}checked{% endif %}> {{ g.name }}</label><br>
         {% empty %}
           <em>No groups available</em>
         {% endfor %}
       </fieldset>
       <p>Note: default password is "password"</p>
-      <button type="submit">Create / Update User</button>
+      <div style="margin-top:8px">
+        <button type="submit" name="_save">Save and exit</button>
+        <button type="submit" name="_addanother">Save and add another</button>
+      </div>
     </form>
 
     <h2>Existing users</h2>

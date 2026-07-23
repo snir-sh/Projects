@@ -77,10 +77,13 @@ def manage_groups(request):
 
 def manage_users(request):
     User = get_user_model()
+    error = None
     if request.method == 'POST':
         username = request.POST.get('username', '').strip()
         selected = request.POST.getlist('groups')
-        if username:
+        if not username:
+            error = 'Username is required.'
+        else:
             user, created = User.objects.get_or_create(username=username)
             # set default password if newly created or to reset
             if created:
@@ -95,7 +98,20 @@ def manage_users(request):
                     UserTypeAssignment.objects.get_or_create(user=user, user_type=ut)
                 except Exception:
                     continue
-        return HttpResponseRedirect(reverse('manage_users'))
+        if error:
+            # re-render the page with error and preserve selections
+            groups = UserType.objects.all().order_by('name')
+            users = User.objects.exclude(is_superuser=True).order_by('username')
+            user_map = []
+            for u in users:
+                uts = [a.user_type.name for a in u.user_type_assignments.select_related('user_type')]
+                user_map.append((u, uts))
+            return render(request, 'surveys/users.html', {'groups': groups, 'users': user_map, 'error': error, 'presel': [int(g) for g in selected if g.isdigit()]})
+
+        # Redirect behavior depending on button
+        if '_addanother' in request.POST:
+            return HttpResponseRedirect(reverse('manage_users'))
+        return HttpResponseRedirect(reverse('index'))
 
     groups = UserType.objects.all().order_by('name')
     User = get_user_model()

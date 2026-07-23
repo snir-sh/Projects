@@ -1,6 +1,13 @@
 {% extends "admin/change_form.html" %}
 
 {% block content %}
+  {% if form.errors %}
+    <div class="messagelist">
+      <ul class="errorlist">
+        {{ form.errors.as_ul|safe }}
+      </ul>
+    </div>
+  {% endif %}
   {{ block.super }}
   {% if form.user_types %}
     <div class="module">
