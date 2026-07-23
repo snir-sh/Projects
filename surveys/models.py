@@ -15,12 +15,23 @@ class Survey(models.Model):
 class Question(models.Model):
     TEXT = 'text'
     CHOICE = 'choice'
-    QUESTION_TYPES = [(TEXT, 'Text'), (CHOICE, 'Choice')]
+    MULTI_SELECT = 'multi_select'
+    MULTI_TEXT = 'multi_text'
+    QUESTION_TYPES = [
+        (TEXT, 'Text'),
+        (CHOICE, 'Choice'),
+        (MULTI_SELECT, 'Multi-select'),
+        (MULTI_TEXT, 'Multi-text (multiple short texts)')
+    ]
 
     text = models.TextField()
     question_type = models.CharField(max_length=20, choices=QUESTION_TYPES, default=TEXT)
-    # For choice questions, newline-separated options stored here (one per line)
-    choices = models.TextField(blank=True, help_text='One option per line. Used when question_type is "Choice"')
+    # For choice and multi-select questions, newline-separated options stored here (one per line)
+    choices = models.TextField(blank=True, help_text='One option per line. Used when question_type is Choice or Multi-select')
+    # For multi-select, limit how many options can be picked
+    max_selections = models.PositiveIntegerField(default=3, help_text='Maximum selections allowed for multi-select questions')
+    # For multi-text, number of text inputs to render
+    multi_text_count = models.PositiveIntegerField(default=3, help_text='Number of separate text inputs for multi-text questions')
     required = models.BooleanField(default=False)
     # Associate questions with Django auth Groups. If groups is empty, question is common to all users.
     groups = models.ManyToManyField(Group, blank=True, related_name='questions')

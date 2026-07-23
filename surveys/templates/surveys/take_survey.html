@@ -10,10 +10,23 @@
           <div class="field-box"><label class="required"><strong>{{ forloop.counter }}. {{ q.text }}</strong></label></div>
           {% if q.type == 'text' %}
             <div class="field-box"><input type="text" name="question_{{ q.id }}" class="vTextField" style="width:60%"></div>
-          {% else %}
+          {% elif q.type == 'choice' %}
             <div class="field-box">
               {% for opt in q.options %}
                 <div class="radiolist"><label><input type="radio" name="question_{{ q.id }}" value="{{ opt|escape }}"> {{ opt }}</label></div>
+              {% endfor %}
+            </div>
+          {% elif q.type == 'multi_select' %}
+            <div class="field-box">
+              <div class="help">Select up to {{ q.max_selections }} options.</div>
+              {% for opt in q.options %}
+                <div class="checkbox"><label><input type="checkbox" name="question_{{ q.id }}" value="{{ opt|escape }}"> {{ opt }}</label></div>
+              {% endfor %}
+            </div>
+          {% elif q.type == 'multi_text' %}
+            <div class="field-box">
+              {% for i in range q.multi_text_count %}
+                <div><input type="text" name="question_{{ q.id }}_{{ forloop.counter }}" class="vTextField" style="width:60%"></div>
               {% endfor %}
             </div>
           {% endif %}

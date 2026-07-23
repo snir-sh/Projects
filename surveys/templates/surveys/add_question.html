@@ -12,6 +12,8 @@
           <select id="qtype" name="question_type" onchange="toggleChoices()">
             <option value="text">Text</option>
             <option value="choice">Choice</option>
+            <option value="multi_select">Multi-select</option>
+            <option value="multi_text">Multi-text (multiple short texts)</option>
           </select>
         </label>
       </div>
@@ -19,9 +21,28 @@
         <label>Options (one per line):<br>
           <textarea name="choices" rows="4" cols="60" placeholder="Option 1\nOption 2\nOption 3"></textarea>
         </label>
-        <div style="font-size:0.9em;color:#444">Only used when Type is Choice.</div>
+        <div style="font-size:0.9em;color:#444">Used when Type is Choice or Multi-select.</div>
+      </div>
+      <div id="maxsel-row" style="display:none;margin-top:8px">
+        <label>Max selections for multi-select: <input type="number" name="max_selections" value="3" min="1" style="width:80px"></label>
+      </div>
+      <div id="multitext-row" style="display:none; margin-top:8px;">
+        <label>Number of text inputs (multi-text): <input type="number" name="multi_text_count" value="3" min="1" style="width:80px"></label>
       </div>
       <div><label><input type="checkbox" name="required"> Required</label></div>
+      <script>
+        function toggleChoices(){
+          var t=document.getElementById('qtype');
+          var row=document.getElementById('choices-row');
+          var maxrow=document.getElementById('maxsel-row');
+          var mtrow=document.getElementById('multitext-row');
+          row.style.display = (t.value === 'choice' || t.value === 'multi_select') ? 'block' : 'none';
+          maxrow.style.display = (t.value === 'multi_select') ? 'block' : 'none';
+          mtrow.style.display = (t.value === 'multi_text') ? 'block' : 'none';
+        }
+        // init on load
+        document.addEventListener('DOMContentLoaded', function(){ toggleChoices(); });
+      </script>
       <script>
         function toggleChoices(){
           var t=document.getElementById('qtype');

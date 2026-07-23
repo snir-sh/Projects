@@ -161,7 +161,17 @@ def add_question(request, survey_id):
             error = 'Question text is required.'
         else:
             choices_text = request.POST.get('choices', '').strip()
-            q = Question.objects.create(text=text, question_type=qtype, choices=choices_text, required=required, survey=survey)
+            max_sel = int(request.POST.get('max_selections') or 3)
+            multi_count = int(request.POST.get('multi_text_count') or 3)
+            q = Question.objects.create(
+                text=text,
+                question_type=qtype,
+                choices=choices_text,
+                max_selections=max_sel,
+                multi_text_count=multi_count,
+                required=required,
+                survey=survey
+            )
             if selected:
                 try:
                     q.groups.set([int(g) for g in selected if g.isdigit()])
@@ -214,14 +224,31 @@ def take_survey(request, survey_id):
         identifier = user.username
         resp = Response.objects.create(survey=survey, user_identifier=identifier)
         for q in qs:
-            key = f'question_{q.id}'
-            val = request.POST.get(key, '').strip()
-            Answer.objects.create(response=resp, question=q, answer_text=val)
+            if q.question_type == Question.CHOICE:
+                key = f'question_{q.id}'
+                val = request.POST.get(key, '').strip()
+                Answer.objects.create(response=resp, question=q, answer_text=val)
+            elif q.question_type == Question.MULTI_SELECT:
+                key = f'question_{q.id}'
+                vals = request.POST.getlist(key)
+                # store as JSON array string
+                import json
+                Answer.objects.create(response=resp, question=q, answer_text=json.dumps(vals))
+            elif q.question_type == Question.MULTI_TEXT:
+                parts = []
+                for i in range(1, q.multi_text_count + 1):
+                    parts.append(request.POST.get(f'question_{q.id}_{i}', '').strip())
+                import json
+                Answer.objects.create(response=resp, question=q, answer_text=json.dumps(parts))
+            else:
+                key = f'question_{q.id}'
+                val = request.POST.get(key, '').strip()
+                Answer.objects.create(response=resp, question=q, answer_text=val)
         return render(request, 'surveys/take_survey_submitted.html', {'survey': survey})
 
     # prepare question structures for the template
     questions = []
     for q in qs:
         opts = [o for o in (q.choices or '').splitlines() if o.strip()]
-        questions.append({'id': q.id, 'text': q.text, 'type': q.question_type, 'required': q.required, 'options': opts})
+        questions.append({'id': q.id, 'text': q.text, 'type': q.question_type, 'required': q.required, 'options': opts, 'max_selections': q.max_selections, 'multi_text_count': q.multi_text_count})
     return render(request, 'surveys/take_survey.html', {'survey': survey, 'questions': questions})
