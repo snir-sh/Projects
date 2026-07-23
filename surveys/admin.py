@@ -5,9 +5,11 @@ from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.forms.widgets import CheckboxSelectMultiple
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
+from django.utils.html import format_html
 from .models import Survey, Question, Response, Answer
 from django.contrib.auth.models import Group
 from django.conf import settings
+import json
 
 
 class AnswerInline(admin.TabularInline):
@@ -42,7 +44,26 @@ class QuestionAdmin(admin.ModelAdmin):
 
 @admin.register(Answer)
 class AnswerAdmin(admin.ModelAdmin):
-    list_display = ('response', 'question')
+    list_display = ('response', 'question', 'formatted_answer')
+
+    def formatted_answer(self, obj):
+        """Format answer_text: parse JSON for multi-select/multi-text, display as comma-separated list."""
+        answer_text = obj.answer_text
+        if not answer_text:
+            return '-'
+        
+        # Try to parse as JSON (for multi-select and multi-text)
+        try:
+            parsed = json.loads(answer_text)
+            if isinstance(parsed, list):
+                return ', '.join(str(item) for item in parsed)
+        except (json.JSONDecodeError, ValueError):
+            pass
+        
+        # Not JSON, return as-is (text or choice)
+        return answer_text
+    
+    formatted_answer.short_description = 'Answer'
 
 
 # Integrate Group assignment into the Django User admin so that when creating
