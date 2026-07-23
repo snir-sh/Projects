@@ -3,13 +3,14 @@ from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.forms.widgets import CheckboxSelectMultiple
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
 from django.utils.html import format_html
 from .models import Survey, Question, Response, Answer
 from django.contrib.auth.models import Group
 from django.conf import settings
 import json
+import csv
 
 
 class AnswerInline(admin.TabularInline):
@@ -45,6 +46,52 @@ class ResponseAdmin(admin.ModelAdmin):
     readonly_fields = ('survey', 'user_identifier', 'submitted_at')
     fields = ('survey', 'user_identifier', 'submitted_at')
     inlines = [AnswerInline]
+    actions = ['export_as_csv']
+
+    def export_as_csv(self, request, queryset):
+        """Export selected responses to CSV with all answers."""
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="survey_responses.csv"'
+        
+        writer = csv.writer(response)
+        
+        # Write header: Response ID, Survey, User, Submitted At, then dynamic question columns
+        all_questions = Question.objects.order_by('id')
+        header = ['Response ID', 'Survey', 'User', 'Submitted At']
+        header.extend([q.text for q in all_questions])
+        writer.writerow(header)
+        
+        # Write data rows
+        for response_obj in queryset:
+            row = [
+                response_obj.id,
+                response_obj.survey.title,
+                response_obj.user_identifier,
+                response_obj.submitted_at.strftime('%Y-%m-%d %H:%M:%S'),
+            ]
+            
+            # Get answers for each question
+            for question in all_questions:
+                answer = response_obj.answer_set.filter(question=question).first()
+                if answer:
+                    # Format answer (parse JSON for multi-select/multi-text)
+                    answer_text = answer.answer_text
+                    if answer_text:
+                        try:
+                            parsed = json.loads(answer_text)
+                            if isinstance(parsed, list):
+                                answer_text = ', '.join(str(item) for item in parsed)
+                        except (json.JSONDecodeError, ValueError):
+                            pass
+                    row.append(answer_text)
+                else:
+                    row.append('')
+            
+            writer.writerow(row)
+        
+        return response
+    
+    export_as_csv.short_description = 'Export selected responses to CSV'
 
 
 @admin.register(Survey)
