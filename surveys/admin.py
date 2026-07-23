@@ -111,7 +111,16 @@ class ResponseAdmin(admin.ModelAdmin):
 
 @admin.register(Survey)
 class SurveyAdmin(admin.ModelAdmin):
-    list_display = ('title', 'created_at')
+    list_display = ('title', 'created_at', 'results_link')
+    
+    def results_link(self, obj):
+        """Link to view survey results."""
+        return format_html(
+            '<a href="{}" class="button" style="background-color: #417690;">{}</a>',
+            f'/surveys/{obj.id}/results/',
+            _('View Results')
+        )
+    results_link.short_description = _('Results')
 
 
 @admin.register(Question)

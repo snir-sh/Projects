@@ -325,3 +325,110 @@ def take_survey(request, survey_id):
         'questions': questions,
         'is_draft': resp is not None,
     })
+
+
+# --- Survey Results Dashboard for Staff ---
+from django.contrib.admin.views.decorators import staff_member_required
+from django.db.models import Count, Q
+import json
+
+@staff_member_required
+def survey_results(request, survey_id):
+    """Display aggregated results for a survey (staff/admin only)."""
+    survey = get_object_or_404(Survey, id=survey_id)
+    
+    # Get all responses (both completed and draft)
+    responses = survey.responses.all()
+    total_responses = responses.count()
+    
+    if total_responses == 0:
+        questions_data = []
+    else:
+        questions_data = []
+        
+        for question in survey.questions.all():
+            q_data = {
+                'id': question.id,
+                'text': question.text,
+                'type': question.question_type,
+            }
+            
+            if question.question_type == Question.CHOICE:
+                # Get all answers for this choice question
+                answers = Answer.objects.filter(question=question, response__survey=survey)
+                choice_counts = {}
+                
+                # Initialize with all options
+                for option in question.choices.split('\n'):
+                    option = option.strip()
+                    if option:
+                        choice_counts[option] = 0
+                
+                # Count answers
+                for answer in answers:
+                    if answer.answer_text:
+                        choice_counts[answer.answer_text] = choice_counts.get(answer.answer_text, 0) + 1
+                
+                q_data['results'] = []
+                for option, count in choice_counts.items():
+                    percentage = (count / total_responses * 100) if total_responses > 0 else 0
+                    q_data['results'].append({
+                        'option': option,
+                        'count': count,
+                        'percentage': round(percentage, 1),
+                    })
+            
+            elif question.question_type == Question.MULTI_SELECT:
+                # Get all multi-select answers
+                answers = Answer.objects.filter(question=question, response__survey=survey)
+                option_counts = {}
+                
+                # Initialize with all options
+                for option in question.choices.split('\n'):
+                    option = option.strip()
+                    if option:
+                        option_counts[option] = 0
+                
+                # Count each selected option
+                for answer in answers:
+                    if answer.answer_text:
+                        try:
+                            selected = json.loads(answer.answer_text)
+                            for option in selected:
+                                option_counts[option] = option_counts.get(option, 0) + 1
+                        except (json.JSONDecodeError, ValueError):
+                            pass
+                
+                q_data['results'] = []
+                for option, count in option_counts.items():
+                    percentage = (count / total_responses * 100) if total_responses > 0 else 0
+                    q_data['results'].append({
+                        'option': option,
+                        'count': count,
+                        'percentage': round(percentage, 1),
+                    })
+            
+            elif question.question_type == Question.TEXT:
+                # Get all text answers
+                answers = Answer.objects.filter(question=question, response__survey=survey).values_list('answer_text', flat=True)
+                q_data['results'] = [{'text': a} for a in answers if a]
+            
+            elif question.question_type == Question.MULTI_TEXT:
+                # Get all multi-text answers
+                answers = Answer.objects.filter(question=question, response__survey=survey).values_list('answer_text', flat=True)
+                q_data['results'] = []
+                for answer in answers:
+                    if answer:
+                        try:
+                            texts = json.loads(answer)
+                            q_data['results'].extend([{'text': t} for t in texts if t])
+                        except (json.JSONDecodeError, ValueError):
+                            q_data['results'].append({'text': answer})
+            
+            questions_data.append(q_data)
+    
+    return render(request, 'surveys/survey_results.html', {
+        'survey': survey,
+        'total_responses': total_responses,
+        'questions_data': questions_data,
+    })

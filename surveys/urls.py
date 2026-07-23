@@ -24,6 +24,7 @@ urlpatterns = [
     # survey taking and admin-styled user survey dashboard remain available for authenticated users
     path('surveys/<int:survey_id>/take/', views.take_survey, name='take_survey'),
     path('admin-surveys/', views.admin_user_surveys, name='admin_user_surveys'),
+    path('surveys/<int:survey_id>/results/', views.survey_results, name='survey_results'),
 
     # API: keep the questions_for_user API (requires authentication or username param)
     path('api/questions_for_user/', views.questions_for_user, name='questions_for_user_root'),

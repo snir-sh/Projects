@@ -93,6 +93,33 @@ msgstr "התשובות שלך עבור \"%(title)s\" הוגשו."
 msgid "Back to surveys"
 msgstr "חזור לסקרים"
 
+msgid "Results"
+msgstr "תוצאות"
+
+msgid "View Results"
+msgstr "צפה בתוצאות"
+
+msgid "Back to Surveys"
+msgstr "חזור לסקרים"
+
+msgid "Total Responses"
+msgstr "סך הכל תגובות"
+
+msgid "Choice"
+msgstr "בחירה"
+
+msgid "Multi-select"
+msgstr "בחירה מרובה"
+
+msgid "Text"
+msgstr "טקסט"
+
+msgid "Multi-text"
+msgstr "טקסט מרובה"
+
+msgid "No responses"
+msgstr "אין תגובות"
+
 msgid "Survey submitted successfully!"
 msgstr "הסקר הוגש בהצלחה!"
 
