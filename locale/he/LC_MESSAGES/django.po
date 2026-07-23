@@ -120,6 +120,27 @@ msgstr "טקסט מרובה"
 msgid "No responses"
 msgstr "אין תגובות"
 
+msgid "points"
+msgstr "נקודות"
+
+msgid "Scoring System"
+msgstr "מערכת הניקוד"
+
+msgid "Scoring"
+msgstr "הניקוד"
+
+msgid "3 selections"
+msgstr "3 בחירות"
+
+msgid "2 selections"
+msgstr "2 בחירות"
+
+msgid "1 selection"
+msgstr "1 בחירה"
+
+msgid "point"
+msgstr "נקודה"
+
 msgid "Survey submitted successfully!"
 msgstr "הסקר הוגש בהצלחה!"
 

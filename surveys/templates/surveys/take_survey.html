@@ -29,6 +29,9 @@
           {% elif q.type == 'multi_select' %}
             <div class="field-box">
               <div class="help">{% blocktrans count counter=q.max_selections %}Select up to {{ counter }} option.{% plural %}Select up to {{ counter }} options.{% endblocktrans %}</div>
+              <div style="font-size: 12px; color: #666; margin-bottom: 10px; padding: 8px; background: #f0f0f0; border-radius: 4px;">
+                <strong>💡 {% trans "Scoring" %}</strong>: {% trans "3 selections" %} = 3,2,1 {% trans "points" %} | {% trans "2 selections" %} = 1,1 {% trans "points" %} | {% trans "1 selection" %} = 1 {% trans "point" %}
+              </div>
               {% for opt in q.options %}
                 <div class="checkbox">
                   <label>

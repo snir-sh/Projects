@@ -68,19 +68,36 @@
                 
                 {% if q_data.type == 'choice' or q_data.type == 'multi_select' %}
                     <!-- Progress bar results -->
-                    {% for result in q_data.results %}
-                        <div class="option-row">
-                            <div class="option-label">
-                                <span class="option-name">{{ result.option }}</span>
-                                <span class="option-stats">{{ result.count }} ({{ result.percentage }}%)</span>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: {{ result.percentage }}%">
-                                    {% if result.percentage > 10 %}{{ result.percentage }}%{% endif %}
+                    {% if q_data.type == 'choice' %}
+                        <!-- Choice question: show counts & percentages -->
+                        {% for result in q_data.results %}
+                            <div class="option-row">
+                                <div class="option-label">
+                                    <span class="option-name">{{ result.option }}</span>
+                                    <span class="option-stats">{{ result.count }} ({{ result.percentage }}%)</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: {{ result.percentage }}%">
+                                        {% if result.percentage > 10 %}{{ result.percentage }}%{% endif %}
+                                    </div>
                                 </div>
                             </div>
+                        {% endfor %}
+                    {% else %}
+                        <!-- Multi-select: show weighted points (3,2,1 for 3 selections; 1,1 for 2 selections; 1 for 1 selection) -->
+                        <div style="font-size: 12px; color: #666; margin-bottom: 10px; padding: 8px; background: #f0f0f0; border-radius: 4px;">
+                            <strong>📌 {% trans "Scoring System" %}</strong>:<br>
+                            • 3 selections: 3, 2, 1 points | 2 selections: 1, 1 points | 1 selection: 1 point
                         </div>
-                    {% endfor %}
+                        {% for result in q_data.results %}
+                            <div class="option-row">
+                                <div class="option-label">
+                                    <span class="option-name">{{ result.option }}</span>
+                                    <span class="option-stats"><strong>{{ result.score }}</strong> {% trans "points" %}</span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
                 
                 {% elif q_data.type == 'text' or q_data.type == 'multi_text' %}
                     <!-- Text responses list -->

@@ -379,33 +379,41 @@ def survey_results(request, survey_id):
                     })
             
             elif question.question_type == Question.MULTI_SELECT:
-                # Get all multi-select answers
+                # Get all multi-select answers with weighted scoring
                 answers = Answer.objects.filter(question=question, response__survey=survey)
-                option_counts = {}
+                option_scores = {}  # Changed from option_counts to option_scores
                 
                 # Initialize with all options
                 for option in question.choices.split('\n'):
                     option = option.strip()
                     if option:
-                        option_counts[option] = 0
+                        option_scores[option] = 0
                 
-                # Count each selected option
+                # Calculate weighted scores based on selection order
+                # Logic: if 3 selections -> 3,2,1 points; if 1-2 selections -> all get 1 point
                 for answer in answers:
                     if answer.answer_text:
                         try:
                             selected = json.loads(answer.answer_text)
-                            for option in selected:
-                                option_counts[option] = option_counts.get(option, 0) + 1
+                            num_selections = len(selected)
+                            
+                            for position, option in enumerate(selected):
+                                if num_selections == 3:
+                                    # Weighted: 3, 2, 1
+                                    points = 3 - position
+                                else:
+                                    # All get 1 point for 1 or 2 selections
+                                    points = 1
+                                
+                                option_scores[option] = option_scores.get(option, 0) + points
                         except (json.JSONDecodeError, ValueError):
                             pass
                 
                 q_data['results'] = []
-                for option, count in option_counts.items():
-                    percentage = (count / total_responses * 100) if total_responses > 0 else 0
+                for option, score in option_scores.items():
                     q_data['results'].append({
                         'option': option,
-                        'count': count,
-                        'percentage': round(percentage, 1),
+                        'score': score,
                     })
             
             elif question.question_type == Question.TEXT:
