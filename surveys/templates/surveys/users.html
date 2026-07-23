@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"><title>Manage Users</title></head>
+  <body>
+    <h1>Users</h1>
+    <form method="post">
+      {% csrf_token %}
+      <label>Username: <input type="text" name="username" required></label>
+      <fieldset>
+        <legend>Assign groups</legend>
+        {% for g in groups %}
+          <label><input type="checkbox" name="groups" value="{{ g.id }}"> {{ g.name }}</label><br>
+        {% empty %}
+          <em>No groups available</em>
+        {% endfor %}
+      </fieldset>
+      <p>Note: default password is "password"</p>
+      <button type="submit">Create / Update User</button>
+    </form>
+
+    <h2>Existing users</h2>
+    <ul>
+      {% for u, uts in users %}
+        <li>{{ u.username }} — groups: {{ uts|join:", " }}</li>
+      {% empty %}
+        <li>No users yet</li>
+      {% endfor %}
+    </ul>
+
+    <p><a href="/">Back</a></p>
+  </body>
+</html>

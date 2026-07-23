@@ -1,0 +1,23 @@
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"><title>Manage Groups</title></head>
+  <body>
+    <h1>Groups</h1>
+    <form method="post">
+      {% csrf_token %}
+      <label>Name: <input type="text" name="name" required></label>
+      <button type="submit">Add Group</button>
+    </form>
+
+    <h2>Existing</h2>
+    <ul>
+      {% for g in groups %}
+        <li>{{ g.name }}</li>
+      {% empty %}
+        <li>No groups yet</li>
+      {% endfor %}
+    </ul>
+
+    <p><a href="/">Back</a></p>
+  </body>
+</html>

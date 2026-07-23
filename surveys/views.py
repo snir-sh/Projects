@@ -1,9 +1,10 @@
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
+from django.http import JsonResponse, HttpResponseRedirect
+from django.shortcuts import get_object_or_404, render
 from django.contrib.auth import get_user_model
 from django.db.models import Q
+from django.urls import reverse
 
-from .models import Question
+from .models import Question, UserType, UserTypeAssignment, Survey
 
 
 def questions_for_user(request, username=None):
@@ -47,3 +48,54 @@ def questions_for_user(request, username=None):
         })
 
     return JsonResponse(data, safe=False)
+
+
+# --- Simple web UI views ---
+
+def index(request):
+    """Root dashboard linking to group/user management and basic API tests."""
+    return render(request, 'surveys/index.html', {})
+
+
+def manage_groups(request):
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        if name:
+            UserType.objects.get_or_create(name=name)
+        return HttpResponseRedirect(reverse('manage_groups'))
+
+    groups = UserType.objects.all().order_by('name')
+    return render(request, 'surveys/groups.html', {'groups': groups})
+
+
+def manage_users(request):
+    User = get_user_model()
+    if request.method == 'POST':
+        username = request.POST.get('username', '').strip()
+        selected = request.POST.getlist('groups')
+        if username:
+            user, created = User.objects.get_or_create(username=username)
+            # set default password if newly created or to reset
+            if created:
+                user.set_password('password')
+                user.email = ''
+                user.save()
+            # clear existing assignments and set new ones
+            UserTypeAssignment.objects.filter(user=user).delete()
+            for gid in selected:
+                try:
+                    ut = UserType.objects.get(id=int(gid))
+                    UserTypeAssignment.objects.get_or_create(user=user, user_type=ut)
+                except Exception:
+                    continue
+        return HttpResponseRedirect(reverse('manage_users'))
+
+    groups = UserType.objects.all().order_by('name')
+    User = get_user_model()
+    users = User.objects.exclude(is_superuser=True).order_by('username')
+    # gather assignments
+    user_map = []
+    for u in users:
+        uts = [a.user_type.name for a in u.user_type_assignments.select_related('user_type')]
+        user_map.append((u, uts))
+    return render(request, 'surveys/users.html', {'groups': groups, 'users': user_map})
