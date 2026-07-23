@@ -231,6 +231,11 @@ def take_survey(request, survey_id):
             elif q.question_type == Question.MULTI_SELECT:
                 key = f'question_{q.id}'
                 vals = request.POST.getlist(key)
+                # trim to allowed max selections to be safe
+                try:
+                    vals = vals[:int(q.max_selections)]
+                except Exception:
+                    pass
                 # store as JSON array string
                 import json
                 Answer.objects.create(response=resp, question=q, answer_text=json.dumps(vals))
@@ -250,5 +255,6 @@ def take_survey(request, survey_id):
     questions = []
     for q in qs:
         opts = [o for o in (q.choices or '').splitlines() if o.strip()]
-        questions.append({'id': q.id, 'text': q.text, 'type': q.question_type, 'required': q.required, 'options': opts, 'max_selections': q.max_selections, 'multi_text_count': q.multi_text_count})
+        indices = list(range(1, q.multi_text_count + 1))
+        questions.append({'id': q.id, 'text': q.text, 'type': q.question_type, 'required': q.required, 'options': opts, 'max_selections': q.max_selections, 'multi_text_count': q.multi_text_count, 'multi_text_indices': indices})
     return render(request, 'surveys/take_survey.html', {'survey': survey, 'questions': questions})

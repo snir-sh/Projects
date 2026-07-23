@@ -25,8 +25,8 @@
             </div>
           {% elif q.type == 'multi_text' %}
             <div class="field-box">
-              {% for i in range q.multi_text_count %}
-                <div><input type="text" name="question_{{ q.id }}_{{ forloop.counter }}" class="vTextField" style="width:60%"></div>
+              {% for idx in q.multi_text_indices %}
+                <div><input type="text" name="question_{{ q.id }}_{{ idx }}" class="vTextField" style="width:60%"></div>
               {% endfor %}
             </div>
           {% endif %}
