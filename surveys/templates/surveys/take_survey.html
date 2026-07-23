@@ -1,0 +1,28 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+  <div class="module">
+    <h1>{{ survey.title }}</h1>
+    <p>{{ survey.description }}</p>
+    <form method="post" class="survey-form">
+      {% csrf_token %}
+      {% for q in questions %}
+        <div class="form-row">
+          <div class="field-box"><label class="required"><strong>{{ forloop.counter }}. {{ q.text }}</strong></label></div>
+          {% if q.type == 'text' %}
+            <div class="field-box"><input type="text" name="question_{{ q.id }}" class="vTextField" style="width:60%"></div>
+          {% else %}
+            <div class="field-box">
+              {% for opt in q.options %}
+                <div class="radiolist"><label><input type="radio" name="question_{{ q.id }}" value="{{ opt|escape }}"> {{ opt }}</label></div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+      <div class="submit-row">
+        <input type="submit" value="Submit answers" class="default">
+        <a class="button" href="{% url 'admin_user_surveys' %}">Back</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}

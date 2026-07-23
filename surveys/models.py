@@ -19,6 +19,8 @@ class Question(models.Model):
 
     text = models.TextField()
     question_type = models.CharField(max_length=20, choices=QUESTION_TYPES, default=TEXT)
+    # For choice questions, newline-separated options stored here (one per line)
+    choices = models.TextField(blank=True, help_text='One option per line. Used when question_type is "Choice"')
     required = models.BooleanField(default=False)
     # Associate questions with Django auth Groups. If groups is empty, question is common to all users.
     groups = models.ManyToManyField(Group, blank=True, related_name='questions')

@@ -9,15 +9,30 @@
       <div><label>Text:<br><textarea name="text" rows="4" cols="60" required></textarea></label></div>
       <div>
         <label>Type:
-          <select name="question_type">
+          <select id="qtype" name="question_type" onchange="toggleChoices()">
             <option value="text">Text</option>
             <option value="choice">Choice</option>
           </select>
         </label>
       </div>
+      <div id="choices-row" style="display:none; margin-top:8px;">
+        <label>Options (one per line):<br>
+          <textarea name="choices" rows="4" cols="60" placeholder="Option 1\nOption 2\nOption 3"></textarea>
+        </label>
+        <div style="font-size:0.9em;color:#444">Only used when Type is Choice.</div>
+      </div>
       <div><label><input type="checkbox" name="required"> Required</label></div>
+      <script>
+        function toggleChoices(){
+          var t=document.getElementById('qtype');
+          var row=document.getElementById('choices-row');
+          row.style.display = t.value === 'choice' ? 'block' : 'none';
+        }
+        // init on load
+        document.addEventListener('DOMContentLoaded', function(){ toggleChoices(); });
+      </script>
       <fieldset>
-        <legend>Assign to groups (optional — leave empty for common question)</legend>
+        <legend>Select groups that SHOULD receive this question (leave empty = common to all)</legend>
         {% if groups %}
           {% for g in groups %}
             <label><input type="checkbox" name="groups" value="{{ g.id }}"> {{ g.name }}</label><br>

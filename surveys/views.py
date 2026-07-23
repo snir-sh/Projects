@@ -1,10 +1,12 @@
 from django.http import JsonResponse, HttpResponseRedirect
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.urls import reverse
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import LoginView
 
-from .models import Question, Survey
+from .models import Question, Survey, Response, Answer
 from django.contrib.auth.models import Group
 
 
@@ -58,8 +60,13 @@ from django.shortcuts import redirect
 
 
 def index(request):
-    """Redirect root to the login page (nice UI provided at /login/)."""
-    return redirect('login')
+    """Redirect root to the admin login page."""
+    return redirect('admin_login')
+
+
+def redirect_admin_login(request):
+    """Redirect helper to send public routes to admin login."""
+    return redirect('admin_login')
 
 
 def manage_groups(request):
@@ -87,7 +94,8 @@ def manage_users(request):
         else:
             user, created = User.objects.get_or_create(username=username)
             if created:
-                user.set_password('password')
+                from django.conf import settings as _settings
+                user.set_password(getattr(_settings, 'DEFAULT_USER_PASSWORD', 'password'))
                 user.email = ''
                 user.save()
             # assign single group
@@ -152,7 +160,8 @@ def add_question(request, survey_id):
         if not text:
             error = 'Question text is required.'
         else:
-            q = Question.objects.create(text=text, question_type=qtype, required=required, survey=survey)
+            choices_text = request.POST.get('choices', '').strip()
+            q = Question.objects.create(text=text, question_type=qtype, choices=choices_text, required=required, survey=survey)
             if selected:
                 try:
                     q.groups.set([int(g) for g in selected if g.isdigit()])
@@ -161,3 +170,58 @@ def add_question(request, survey_id):
             return HttpResponseRedirect(reverse('manage_surveys'))
 
     return render(request, 'surveys/add_question.html', {'survey': survey, 'groups': groups, 'error': error})
+
+
+# --- Admin-facing simplified login and survey dashboard for non-staff users ---
+class AdminLoginView(LoginView):
+    """Use at /admin/login/ so non-staff users are redirected to their survey dashboard."""
+    template_name = 'admin/login.html'
+
+    def get_success_url(self):
+        user = getattr(self.request, 'user', None)
+        if user and user.is_authenticated:
+            if user.is_staff:
+                return reverse('admin:index')
+            return reverse('admin_user_surveys')
+        return super().get_success_url()
+
+
+@login_required
+def admin_user_surveys(request):
+    """Show surveys relevant to the logged-in user's groups. Intended for non-staff users logging in at /admin/login/."""
+    user = request.user
+    if user.is_staff:
+        # staff should go to the normal admin index
+        return redirect('admin:index')
+    user_group_ids = list(user.groups.values_list('id', flat=True))
+    # surveys that have questions assigned to any of the user's groups
+    surveys = Survey.objects.filter(questions__groups__in=user_group_ids).distinct()
+    # if no group-specific surveys, include surveys with common questions
+    if not surveys.exists():
+        surveys = Survey.objects.filter(questions__groups__isnull=True).distinct()
+    return render(request, 'surveys/admin_user_surveys.html', {'surveys': surveys})
+
+
+@login_required
+def take_survey(request, survey_id):
+    """Allow a logged-in user to take a survey; only shows questions visible to their groups."""
+    user = request.user
+    survey = get_object_or_404(Survey, pk=survey_id)
+    user_group_ids = list(user.groups.values_list('id', flat=True))
+    qs = Question.objects.filter(Q(survey=survey)).filter(Q(groups__isnull=True) | Q(groups__in=user_group_ids)).distinct()
+    if request.method == 'POST':
+        # create Response and Answers
+        identifier = user.username
+        resp = Response.objects.create(survey=survey, user_identifier=identifier)
+        for q in qs:
+            key = f'question_{q.id}'
+            val = request.POST.get(key, '').strip()
+            Answer.objects.create(response=resp, question=q, answer_text=val)
+        return render(request, 'surveys/take_survey_submitted.html', {'survey': survey})
+
+    # prepare question structures for the template
+    questions = []
+    for q in qs:
+        opts = [o for o in (q.choices or '').splitlines() if o.strip()]
+        questions.append({'id': q.id, 'text': q.text, 'type': q.question_type, 'required': q.required, 'options': opts})
+    return render(request, 'surveys/take_survey.html', {'survey': survey, 'questions': questions})

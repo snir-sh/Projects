@@ -66,3 +66,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Authentication redirects
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/groups/'
+
+# Default password for newly created non-admin users. Can be overridden via env var.
+DEFAULT_USER_PASSWORD = os.environ.get('DEFAULT_USER_PASSWORD', 'password')

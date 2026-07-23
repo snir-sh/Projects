@@ -1,0 +1,16 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+  <div class="module">
+    <h1>Surveys assigned to you</h1>
+    {% if surveys %}
+      <ul>
+        {% for s in surveys %}
+          <li><a href="{% url 'take_survey' s.id %}">{{ s.title }}</a> — {{ s.description }}</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No surveys available for your group.</p>
+    {% endif %}
+    <p><a class="button" href="{% url 'logout' %}">Log out</a></p>
+  </div>
+{% endblock %}

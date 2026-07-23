@@ -4,8 +4,10 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.forms.widgets import CheckboxSelectMultiple
 from django.http import HttpResponseRedirect
+from django.shortcuts import render
 from .models import Survey, Question, Response, Answer
 from django.contrib.auth.models import Group
+from django.conf import settings
 
 
 class AnswerInline(admin.TabularInline):
@@ -26,7 +28,9 @@ class SurveyAdmin(admin.ModelAdmin):
 
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
-    list_display = ('text', 'question_type', 'required', 'is_common')
+    # Show Survey first in the changelist and in the form
+    list_display = ('survey', 'text', 'question_type', 'required', 'is_common')
+    fields = ('survey', 'text', 'question_type', 'choices', 'required', 'groups')
     filter_horizontal = ('groups',)
 
 
@@ -70,8 +74,17 @@ class CustomUserAdmin(DjangoUserAdmin):
     form = AdminUserForm
     add_form = AdminUserForm
 
+    # Show username and assigned Group in the changelist instead of email
+    list_display = ('username', 'group_name', 'is_staff', 'is_active')
+
     # Hide the default admin list filters on the User changelist (no sidebar filters)
     list_filter = ()
+
+    def group_name(self, obj):
+        """Return the first assigned group name or '-' if none."""
+        g = obj.groups.first()
+        return g.name if g else '-'
+    group_name.short_description = 'Group'
 
     # Simplify add form to only request username/email (no password field shown)
     add_fieldsets = (
@@ -113,7 +126,8 @@ class CustomUserAdmin(DjangoUserAdmin):
                 obj = form.save(commit=False)
                 # default password for new users
                 if not obj.pk:
-                    obj.set_password('password')
+                    # set default password from settings for newly created users
+                    obj.set_password(getattr(settings, 'DEFAULT_USER_PASSWORD', 'password'))
                 obj.save()
                 # assignment: single group
                 selected = form.cleaned_data.get('group')
@@ -127,7 +141,8 @@ class CustomUserAdmin(DjangoUserAdmin):
                 messages.success(request, f'User "{obj.username}" created.')
                 if '_addanother' in request.POST:
                     return HttpResponseRedirect(reverse('admin:auth_user_add'))
-                return HttpResponseRedirect(reverse('index'))
+                # After saving in admin, go back to the users changelist in admin
+                return HttpResponseRedirect(reverse('admin:auth_user_changelist'))
             else:
                 # Let the admin render the form with errors (our templates show errors)
                 sel = request.POST.get('group')
