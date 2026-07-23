@@ -186,25 +186,20 @@ def add_question(request, survey_id):
 
 # --- Admin-facing simplified login and survey dashboard for non-staff users ---
 class AdminLoginView(LoginView):
-    """Use at /admin/login/ so non-staff users are redirected to their survey dashboard."""
+    """Login view for users—superuser goes to admin, regular users see surveys."""
     template_name = 'admin/login.html'
 
     def get_success_url(self):
         user = getattr(self.request, 'user', None)
-        if user and user.is_authenticated:
-            if user.is_staff:
-                return reverse('admin:index')
-            return reverse('admin_user_surveys')
-        return super().get_success_url()
+        if user and user.is_superuser:
+            return reverse('admin:index')
+        return reverse('admin_user_surveys')
 
 
 @login_required
 def admin_user_surveys(request):
     """Show all surveys to all authenticated users. Questions will be filtered per-question based on user groups."""
     user = request.user
-    if user.is_staff:
-        # staff should go to the normal admin index
-        return redirect('admin:index')
     
     # Show ALL surveys to all users - questions are filtered per-question in take_survey
     surveys = Survey.objects.all()

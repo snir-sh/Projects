@@ -1,5 +1,5 @@
-{% load i18n %}
 {% extends "admin/base_site.html" %}
+{% load i18n %}
 {% block content %}
   <div class="module">
     <h1>{% trans "Surveys assigned to you" %}</h1>
@@ -44,6 +44,11 @@
     {% else %}
       <p>{% trans "No surveys available for your group." %}</p>
     {% endif %}
-    <p><a class="button" href="{% url 'logout' %}">{% trans "Log out" %}</a></p>
+    <p>
+      <form method="post" action="{% url 'logout' %}" style="display: inline;">
+        {% csrf_token %}
+        <button type="submit" class="button" style="cursor: pointer;">{% trans "Log out" %}</button>
+      </form>
+    </p>
   </div>
 {% endblock %}
