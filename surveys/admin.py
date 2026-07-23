@@ -53,3 +53,21 @@ except Exception:
 @admin.register(User)
 class CustomUserAdmin(DjangoUserAdmin):
     inlines = (UserTypeAssignmentInline,)
+
+
+# Customize the built-in auth Group admin to hide permissions and adjust buttons
+from django.contrib.auth.models import Group
+from django.contrib.auth.admin import GroupAdmin as DjangoGroupAdmin
+
+try:
+    admin.site.unregister(Group)
+except Exception:
+    pass
+
+
+@admin.register(Group)
+class GroupAdmin(DjangoGroupAdmin):
+    # Hide permissions field from the admin form
+    exclude = ('permissions',)
+    # Use a custom template for the change form so button labels can be adjusted
+    change_form_template = 'admin/auth/group/change_form.html'
