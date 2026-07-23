@@ -300,6 +300,8 @@ class CustomUserAdmin(DjangoUserAdmin):
             extra_context['presel'] = g.id if g else None
         except Exception:
             extra_context['presel'] = None
+        # Use the default Django admin template for change view
+        extra_context['change_form_template'] = 'admin/change_form.html'
         return super().change_view(request, object_id, form_url, extra_context=extra_context)
 
 
