@@ -3,6 +3,7 @@ from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.forms.widgets import CheckboxSelectMultiple
+from django.http import HttpResponseRedirect
 from .models import UserType, Survey, Question, Response, Answer, UserTypeAssignment
 
 
@@ -97,18 +98,49 @@ class CustomUserAdmin(DjangoUserAdmin):
     change_form_template = 'admin/auth/user/change_form.html'
     add_form_template = 'admin/auth/user/add_form.html'
 
+    def add_view(self, request, form_url='', extra_context=None):
+        """Handle admin add-user POST in the same way as the public /users/ UI.
+
+        - Validates username is present
+        - Sets default password for new users
+        - Assigns UserType groups from the submitted user_types field
+        - Redirects based on button pressed: Save and add another -> stay on add; Save and exit -> go to index
+        """
+        from django.contrib import messages
+        from django.urls import reverse
+
+        Form = self.get_form(request)
+        if request.method == 'POST':
+            form = Form(request.POST)
+            if form.is_valid():
+                obj = form.save(commit=False)
+                # default password for new users
+                if not obj.pk:
+                    obj.set_password('password')
+                obj.save()
+                # assignments
+                selected = form.cleaned_data.get('user_types', []) or []
+                UserTypeAssignment.objects.filter(user=obj).delete()
+                for ut in selected:
+                    UserTypeAssignment.objects.get_or_create(user=obj, user_type=ut)
+                messages.success(request, f'User "{obj.username}" created.')
+                if '_addanother' in request.POST:
+                    return HttpResponseRedirect(reverse('admin:auth_user_add'))
+                return HttpResponseRedirect(reverse('index'))
+            else:
+                # Let the admin render the form with errors (our templates show errors)
+                extra_context = extra_context or {}
+                extra_context['presel'] = [int(x) for x in request.POST.getlist('user_types') if x.isdigit()]
+                return super().add_view(request, form_url, extra_context=extra_context)
+        return super().add_view(request, form_url, extra_context=extra_context)
+
     def save_model(self, request, obj, form, change):
-        # For newly created users (via admin), set a default password and save
-        is_new = not obj.pk
-        if is_new:
-            obj.set_password('password')
+        # For change view -- ensure assignments saved
         obj.save()
-        # Save user_types assignments from the form
         try:
             selected = form.cleaned_data.get('user_types', [])
         except Exception:
             selected = []
-        # Clear existing assignments
         UserTypeAssignment.objects.filter(user=obj).delete()
         for ut in selected:
             UserTypeAssignment.objects.get_or_create(user=obj, user_type=ut)
