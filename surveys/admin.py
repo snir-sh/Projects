@@ -1,6 +1,8 @@
+from django import forms
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
+from django.forms.widgets import CheckboxSelectMultiple
 from .models import UserType, Survey, Question, Response, Answer, UserTypeAssignment
 
 
@@ -50,10 +52,29 @@ except Exception:
     pass
 
 
+# Provide a ModelForm that includes a user_types field (checkboxes) so the
+# admin can render it even though it's not a direct User model field.
+from django import forms as _forms
+UserModel = get_user_model()
+
+class AdminUserForm(_forms.ModelForm):
+    user_types = _forms.ModelMultipleChoiceField(
+        queryset=UserType.objects.all(), required=False, widget=CheckboxSelectMultiple, label='Groups'
+    )
+
+    class Meta:
+        model = UserModel
+        fields = ('username', 'email')
+
+
 @admin.register(User)
 class CustomUserAdmin(DjangoUserAdmin):
     # Remove the UserTypeAssignment inline from the admin UI
     inlines = ()
+
+    # Use our custom forms for add/change so we can include user_types
+    form = AdminUserForm
+    add_form = AdminUserForm
 
     # Simplify add form to only request username/email (no password field shown)
     add_fieldsets = (
@@ -70,11 +91,24 @@ class CustomUserAdmin(DjangoUserAdmin):
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
 
+    change_form_template = 'admin/auth/user/change_form.html'
+    add_form_template = 'admin/auth/user/add_form.html'
+
     def save_model(self, request, obj, form, change):
         # For newly created users (via admin), set a default password and save
-        if not obj.pk:
+        is_new = not obj.pk
+        if is_new:
             obj.set_password('password')
         obj.save()
+        # Save user_types assignments from the form
+        try:
+            selected = form.cleaned_data.get('user_types', [])
+        except Exception:
+            selected = []
+        # Clear existing assignments
+        UserTypeAssignment.objects.filter(user=obj).delete()
+        for ut in selected:
+            UserTypeAssignment.objects.get_or_create(user=obj, user_type=ut)
 
 
 # Customize the built-in auth Group admin to hide permissions and adjust buttons
