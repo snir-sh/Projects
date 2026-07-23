@@ -337,7 +337,38 @@ except Exception:
     pass
 
 
+class UserInline(admin.TabularInline):
+    """Display users belonging to a group."""
+    model = User.groups.through
+    extra = 0
+    fields = ('user_username', 'user_is_active', 'user_is_superuser')
+    readonly_fields = ('user_username', 'user_is_active', 'user_is_superuser')
+    can_delete = False
+    
+    def user_username(self, obj):
+        """Display username of the user."""
+        return obj.user.username
+    user_username.short_description = _('Username')
+    
+    def user_is_active(self, obj):
+        """Display user active status."""
+        html = '<span style="color: {}; font-weight: bold;">{}</span>'
+        color = 'green' if obj.user.is_active else 'red'
+        mark = '✓' if obj.user.is_active else '✗'
+        return format_html(html, color, mark)
+    user_is_active.short_description = _('Active')
+    
+    def user_is_superuser(self, obj):
+        """Display user admin status."""
+        html = '<span style="color: {}; font-weight: bold;">{}</span>'
+        color = 'green' if obj.user.is_superuser else 'red'
+        mark = '✓' if obj.user.is_superuser else '✗'
+        return format_html(html, color, mark)
+    user_is_superuser.short_description = _('Admin')
+
+
 @admin.register(Group)
 class GroupAdmin(DjangoGroupAdmin):
     # Hide permissions field from the admin form
     exclude = ('permissions',)
+    inlines = [UserInline]
