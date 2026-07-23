@@ -52,7 +52,29 @@ except Exception:
 
 @admin.register(User)
 class CustomUserAdmin(DjangoUserAdmin):
-    inlines = (UserTypeAssignmentInline,)
+    # Remove the UserTypeAssignment inline from the admin UI
+    inlines = ()
+
+    # Simplify add form to only request username/email (no password field shown)
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('username', 'email'),
+        }),
+    )
+
+    # Simplify change form fieldsets (omit password / auth-related widgets)
+    fieldsets = (
+        (None, {'fields': ('username', 'email')}),
+        ('Status', {'fields': ('is_active', 'is_staff', 'is_superuser')}),
+        ('Important dates', {'fields': ('last_login', 'date_joined')}),
+    )
+
+    def save_model(self, request, obj, form, change):
+        # For newly created users (via admin), set a default password and save
+        if not obj.pk:
+            obj.set_password('password')
+        obj.save()
 
 
 # Customize the built-in auth Group admin to hide permissions and adjust buttons
