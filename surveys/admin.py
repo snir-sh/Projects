@@ -33,6 +33,12 @@ class QuestionAdmin(admin.ModelAdmin):
     fields = ('survey', 'text', 'question_type', 'choices', 'required', 'groups')
     filter_horizontal = ('groups',)
 
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        # Provide clearer help text so admins understand selection semantics
+        if db_field.name == 'groups':
+            kwargs.setdefault('help_text', 'Select groups that SHOULD receive this question (leave empty = common to all)')
+        return super().formfield_for_manytomany(db_field, request, **kwargs)
+
 
 @admin.register(Answer)
 class AnswerAdmin(admin.ModelAdmin):
