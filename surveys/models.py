@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import Group
+from django.utils.translation import gettext_lazy as _
 
 
 class Survey(models.Model):
@@ -10,6 +11,10 @@ class Survey(models.Model):
 
     def __str__(self):
         return self.title
+
+    class Meta:
+        verbose_name = _('Survey')
+        verbose_name_plural = _('Surveys')
 
 
 class Question(models.Model):
@@ -45,6 +50,10 @@ class Question(models.Model):
     def __str__(self):
         return (self.text[:75] + '...') if len(self.text) > 75 else self.text
 
+    class Meta:
+        verbose_name = _('Question')
+        verbose_name_plural = _('Questions')
+
 
 class Response(models.Model):
     DRAFT = 'draft'
@@ -63,6 +72,10 @@ class Response(models.Model):
     def __str__(self):
         return f"Response {self.id} to {self.survey} by {self.user_identifier} ({self.status})"
 
+    class Meta:
+        verbose_name = _('Response')
+        verbose_name_plural = _('Responses')
+
 
 class Answer(models.Model):
     response = models.ForeignKey(Response, on_delete=models.CASCADE, related_name='answers')
@@ -71,3 +84,7 @@ class Answer(models.Model):
 
     def __str__(self):
         return f"Answer to {self.question}"
+
+    class Meta:
+        verbose_name = _('Answer')
+        verbose_name_plural = _('Answers')

@@ -4,11 +4,32 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Language: he\n"
 
-msgid "Surveys assigned to you"
-msgstr "סקרים שהוקצו לך"
-
 msgid "Survey"
 msgstr "סקר"
+
+msgid "Surveys"
+msgstr "סקרים"
+
+msgid "Question"
+msgstr "שאלה"
+
+msgid "Questions"
+msgstr "שאלות"
+
+msgid "Response"
+msgstr "תגובה"
+
+msgid "Responses"
+msgstr "תגובות"
+
+msgid "Answer"
+msgstr "תשובה"
+
+msgid "Answers"
+msgstr "תשובות"
+
+msgid "Surveys assigned to you"
+msgstr "סקרים שהוקצו לך"
 
 msgid "Status"
 msgstr "סטטוס"
