@@ -200,17 +200,14 @@ class AdminLoginView(LoginView):
 
 @login_required
 def admin_user_surveys(request):
-    """Show surveys relevant to the logged-in user's groups. Display completion status and allow resuming drafts."""
+    """Show all surveys to all authenticated users. Questions will be filtered per-question based on user groups."""
     user = request.user
     if user.is_staff:
         # staff should go to the normal admin index
         return redirect('admin:index')
-    user_group_ids = list(user.groups.values_list('id', flat=True))
-    # surveys that have questions assigned to any of the user's groups
-    surveys = Survey.objects.filter(questions__groups__in=user_group_ids).distinct()
-    # if no group-specific surveys, include surveys with common questions
-    if not surveys.exists():
-        surveys = Survey.objects.filter(questions__groups__isnull=True).distinct()
+    
+    # Show ALL surveys to all users - questions are filtered per-question in take_survey
+    surveys = Survey.objects.all()
     
     # Add completion status for each survey
     survey_list = []
