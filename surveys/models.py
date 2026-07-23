@@ -15,7 +15,6 @@ class Survey(models.Model):
     class Meta:
         verbose_name = _('Survey')
         verbose_name_plural = _('Surveys')
-        app_label = 'סקרים'
 
 
 class Question(models.Model):
