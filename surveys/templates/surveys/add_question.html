@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"><title>Add Question</title></head>
+  <body>
+    <h1>Add question to "{{ survey.title }}"</h1>
+    <form method="post">
+      {% csrf_token %}
+      {% if error %}<div style="color:crimson">{{ error }}</div>{% endif %}
+      <div><label>Text:<br><textarea name="text" rows="4" cols="60" required></textarea></label></div>
+      <div>
+        <label>Type:
+          <select name="question_type">
+            <option value="text">Text</option>
+            <option value="choice">Choice</option>
+          </select>
+        </label>
+      </div>
+      <div><label><input type="checkbox" name="required"> Required</label></div>
+      <fieldset>
+        <legend>Assign to groups (optional — leave empty for common question)</legend>
+        {% if groups %}
+          {% for g in groups %}
+            <label><input type="checkbox" name="groups" value="{{ g.id }}"> {{ g.name }}</label><br>
+          {% endfor %}
+        {% else %}
+          <em>No groups available</em>
+        {% endif %}
+      </fieldset>
+      <div style="margin-top:8px"><button type="submit">Create question</button></div>
+    </form>
+    <p><a href="{% url 'manage_surveys' %}">Back to surveys</a></p>
+  </body>
+</html>

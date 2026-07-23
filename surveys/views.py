@@ -120,3 +120,44 @@ def manage_users(request):
         gnames = [g.name for g in u.groups.all()]
         user_map.append((u, gnames))
     return render(request, 'surveys/users.html', {'groups': groups, 'users': user_map})
+
+
+# --- Surveys & Questions public UI ---
+
+def manage_surveys(request):
+    """List surveys and allow creating a new Survey."""
+    if request.method == 'POST':
+        title = request.POST.get('title', '').strip()
+        description = request.POST.get('description', '').strip()
+        if title:
+            Survey.objects.get_or_create(title=title, defaults={'description': description})
+            if '_addanother' in request.POST:
+                return HttpResponseRedirect(reverse('manage_surveys'))
+            return HttpResponseRedirect(reverse('manage_surveys'))
+
+    surveys = Survey.objects.all().order_by('-created_at')
+    return render(request, 'surveys/surveys.html', {'surveys': surveys})
+
+
+def add_question(request, survey_id):
+    """Add a Question to a Survey. Questions can be common (no groups) or assigned to groups."""
+    survey = get_object_or_404(Survey, pk=survey_id)
+    groups = Group.objects.all().order_by('name')
+    error = None
+    if request.method == 'POST':
+        text = request.POST.get('text', '').strip()
+        qtype = request.POST.get('question_type', 'text')
+        required = bool(request.POST.get('required'))
+        selected = request.POST.getlist('groups')
+        if not text:
+            error = 'Question text is required.'
+        else:
+            q = Question.objects.create(text=text, question_type=qtype, required=required, survey=survey)
+            if selected:
+                try:
+                    q.groups.set([int(g) for g in selected if g.isdigit()])
+                except Exception:
+                    pass
+            return HttpResponseRedirect(reverse('manage_surveys'))
+
+    return render(request, 'surveys/add_question.html', {'survey': survey, 'groups': groups, 'error': error})
