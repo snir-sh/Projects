@@ -2,16 +2,6 @@
 {% extends "admin/base_site.html" %}
 {% block content %}
   <div class="module">
-    <div style="float: right; margin-bottom: 10px;">
-      <form action="{% url 'set_language' %}" method="post" style="display: inline;">
-        {% csrf_token %}
-        <input type="hidden" name="next" value="{{ request.path }}">
-        <select name="language" onchange="this.form.submit()">
-          <option value="en" {% if LANGUAGE_CODE == 'en' %}selected{% endif %}>English</option>
-          <option value="he" {% if LANGUAGE_CODE == 'he' %}selected{% endif %}>עברית</option>
-        </select>
-      </form>
-    </div>
     <h1>{% trans "Surveys assigned to you" %}</h1>
     {% if survey_list %}
       <table>

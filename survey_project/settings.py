@@ -72,7 +72,6 @@ LOGIN_REDIRECT_URL = '/groups/'
 # Internationalization
 LANGUAGE_CODE = 'he'
 LANGUAGES = [
-    ('en', 'English'),
     ('he', 'עברית'),
 ]
 LOCALE_PATHS = [
