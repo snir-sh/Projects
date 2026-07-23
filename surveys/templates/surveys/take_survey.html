@@ -3,24 +3,37 @@
   <div class="module">
     <h1>{{ survey.title }}</h1>
     <p>{{ survey.description }}</p>
+    {% if is_draft %}
+      <div style="background-color: #FFF8DC; border: 1px solid #DAA520; padding: 10px; margin-bottom: 20px; border-radius: 4px;">
+        <strong>⚠ Resuming draft</strong> — Your previous responses have been loaded. Save or submit when ready.
+      </div>
+    {% endif %}
     <form method="post" class="survey-form">
       {% csrf_token %}
       {% for q in questions %}
         <div class="form-row">
           <div class="field-box"><label class="required"><strong>{{ forloop.counter }}. {{ q.text }}</strong></label></div>
           {% if q.type == 'text' %}
-            <div class="field-box"><input type="text" name="question_{{ q.id }}" class="vTextField" style="width:60%"></div>
+            <div class="field-box"><input type="text" name="question_{{ q.id }}" class="vTextField" style="width:60%" value="{{ q.existing_answer|default:'' }}"></div>
           {% elif q.type == 'choice' %}
             <div class="field-box">
               {% for opt in q.options %}
-                <div class="radiolist"><label><input type="radio" name="question_{{ q.id }}" value="{{ opt|escape }}"> {{ opt }}</label></div>
+                <div class="radiolist">
+                  <label>
+                    <input type="radio" name="question_{{ q.id }}" value="{{ opt|escape }}" {% if q.existing_answer == opt %}checked{% endif %}> {{ opt }}
+                  </label>
+                </div>
               {% endfor %}
             </div>
           {% elif q.type == 'multi_select' %}
             <div class="field-box">
               <div class="help">Select up to {{ q.max_selections }} options.</div>
               {% for opt in q.options %}
-                <div class="checkbox"><label><input type="checkbox" name="question_{{ q.id }}" value="{{ opt|escape }}"> {{ opt }}</label></div>
+                <div class="checkbox">
+                  <label>
+                    <input type="checkbox" name="question_{{ q.id }}" value="{{ opt|escape }}" data-existing="{{ q.existing_answer|default:'' }}" class="multi-select-checkbox"> {{ opt }}
+                  </label>
+                </div>
               {% endfor %}
             </div>
           {% elif q.type == 'multi_text' %}
@@ -33,17 +46,34 @@
         </div>
       {% endfor %}
       <div class="submit-row">
-        <input type="submit" value="Submit answers" class="default">
+        <button type="submit" name="save" class="default" title="Save your responses as a draft and continue later">Save Draft</button>
+        <button type="submit" name="submit" class="default" style="background-color: #417690;">Submit</button>
         <a class="button" href="{% url 'admin_user_surveys' %}">Back</a>
       </div>
     </form>
   </div>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
+      // Parse existing multi-select answers
+      const checkboxes = document.querySelectorAll('.multi-select-checkbox');
+      checkboxes.forEach(checkbox => {
+        const existing = checkbox.getAttribute('data-existing');
+        if (existing) {
+          try {
+            const selectedItems = JSON.parse(existing);
+            if (Array.isArray(selectedItems) && selectedItems.includes(checkbox.value)) {
+              checkbox.checked = true;
+            }
+          } catch (e) {
+            // Not JSON, skip
+          }
+        }
+      });
+      
+      // Multi-select checkbox limiting
       const form = document.querySelector('.survey-form');
       const checkboxGroups = {};
       
-      // Organize checkboxes by question
       form.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
         const questionId = checkbox.name;
         if (!checkboxGroups[questionId]) {
@@ -52,10 +82,12 @@
         checkboxGroups[questionId].push(checkbox);
       });
       
-      // Add change event listeners
       Object.keys(checkboxGroups).forEach(questionId => {
         const checkboxes = checkboxGroups[questionId];
-        const maxSelections = parseInt(checkboxes[0].parentElement.parentElement.querySelector('.help').textContent.match(/\d+/)[0]);
+        const helpElement = checkboxes[0].parentElement.parentElement.querySelector('.help');
+        if (!helpElement) return;
+        
+        const maxSelections = parseInt(helpElement.textContent.match(/\d+/)[0]);
         
         checkboxes.forEach(checkbox => {
           checkbox.addEventListener('change', function() {
@@ -64,6 +96,12 @@
               cb.disabled = checkedCount >= maxSelections && !cb.checked;
             });
           });
+        });
+        
+        // Run initial disable check
+        const checkedCount = checkboxes.filter(cb => cb.checked).length;
+        checkboxes.forEach(cb => {
+          cb.disabled = checkedCount >= maxSelections && !cb.checked;
         });
       });
     });

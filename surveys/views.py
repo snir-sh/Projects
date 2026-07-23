@@ -199,7 +199,7 @@ class AdminLoginView(LoginView):
 
 @login_required
 def admin_user_surveys(request):
-    """Show surveys relevant to the logged-in user's groups. Intended for non-staff users logging in at /admin/login/."""
+    """Show surveys relevant to the logged-in user's groups. Display completion status and allow resuming drafts."""
     user = request.user
     if user.is_staff:
         # staff should go to the normal admin index
@@ -210,20 +210,58 @@ def admin_user_surveys(request):
     # if no group-specific surveys, include surveys with common questions
     if not surveys.exists():
         surveys = Survey.objects.filter(questions__groups__isnull=True).distinct()
-    return render(request, 'surveys/admin_user_surveys.html', {'surveys': surveys})
+    
+    # Add completion status for each survey
+    survey_list = []
+    for survey in surveys:
+        # Check if user has completed this survey
+        completed = Response.objects.filter(
+            survey=survey,
+            user_identifier=user.username,
+            status=Response.COMPLETED
+        ).exists()
+        
+        # Check if user has a draft
+        draft = Response.objects.filter(
+            survey=survey,
+            user_identifier=user.username,
+            status=Response.DRAFT
+        ).first()
+        
+        survey_list.append({
+            'survey': survey,
+            'completed': completed,
+            'draft': draft,
+        })
+    
+    return render(request, 'surveys/admin_user_surveys.html', {'survey_list': survey_list})
 
 
 @login_required
 def take_survey(request, survey_id):
-    """Allow a logged-in user to take a survey; only shows questions visible to their groups."""
+    """Allow a logged-in user to take a survey; only shows questions visible to their groups.
+    Supports draft saves and resuming incomplete surveys."""
     user = request.user
     survey = get_object_or_404(Survey, pk=survey_id)
     user_group_ids = list(user.groups.values_list('id', flat=True))
     qs = Question.objects.filter(Q(survey=survey)).filter(Q(groups__isnull=True) | Q(groups__in=user_group_ids)).distinct()
+    
+    # Get or create draft response for this survey
+    resp = Response.objects.filter(
+        survey=survey,
+        user_identifier=user.username,
+        status=Response.DRAFT
+    ).first()
+    
     if request.method == 'POST':
-        # create Response and Answers
-        identifier = user.username
-        resp = Response.objects.create(survey=survey, user_identifier=identifier)
+        # Create or update response
+        if not resp:
+            resp = Response.objects.create(survey=survey, user_identifier=user.username, status=Response.DRAFT)
+        else:
+            # Clear previous answers for this response
+            resp.answers.all().delete()
+        
+        # Save answers
         for q in qs:
             if q.question_type == Question.CHOICE:
                 key = f'question_{q.id}'
@@ -232,31 +270,57 @@ def take_survey(request, survey_id):
             elif q.question_type == Question.MULTI_SELECT:
                 key = f'question_{q.id}'
                 vals = request.POST.getlist(key)
-                # trim to allowed max selections to be safe
                 try:
                     vals = vals[:int(q.max_selections)]
                 except Exception:
                     pass
-                # store as JSON array string
-                import json
                 Answer.objects.create(response=resp, question=q, answer_text=json.dumps(vals))
             elif q.question_type == Question.MULTI_TEXT:
                 parts = []
                 for i in range(1, q.multi_text_count + 1):
                     parts.append(request.POST.get(f'question_{q.id}_{i}', '').strip())
-                import json
                 Answer.objects.create(response=resp, question=q, answer_text=json.dumps(parts))
             else:
                 key = f'question_{q.id}'
                 val = request.POST.get(key, '').strip()
                 Answer.objects.create(response=resp, question=q, answer_text=val)
-        messages.success(request, f'Survey "{survey.title}" submitted successfully!')
-        return render(request, 'surveys/take_survey_submitted.html', {'survey': survey})
+        
+        # Check if submit button was clicked
+        if 'submit' in request.POST:
+            resp.status = Response.COMPLETED
+            resp.save()
+            messages.success(request, f'Survey "{survey.title}" submitted successfully!')
+            return render(request, 'surveys/take_survey_submitted.html', {'survey': survey})
+        else:
+            # Auto-save draft
+            messages.info(request, f'Survey draft saved.')
+            return redirect('take_survey', survey_id=survey_id)
 
-    # prepare question structures for the template
+    # Prepare question structures for the template
     questions = []
     for q in qs:
         opts = [o for o in (q.choices or '').splitlines() if o.strip()]
         indices = list(range(1, q.multi_text_count + 1))
-        questions.append({'id': q.id, 'text': q.text, 'type': q.question_type, 'required': q.required, 'options': opts, 'max_selections': q.max_selections, 'multi_text_count': q.multi_text_count, 'multi_text_indices': indices})
-    return render(request, 'surveys/take_survey.html', {'survey': survey, 'questions': questions})
+        
+        # Load existing answer if resuming a draft
+        existing_answer = None
+        if resp:
+            existing_answer = resp.answers.filter(question=q).first()
+        
+        questions.append({
+            'id': q.id,
+            'text': q.text,
+            'type': q.question_type,
+            'required': q.required,
+            'options': opts,
+            'max_selections': q.max_selections,
+            'multi_text_count': q.multi_text_count,
+            'multi_text_indices': indices,
+            'existing_answer': existing_answer.answer_text if existing_answer else None,
+        })
+    
+    return render(request, 'surveys/take_survey.html', {
+        'survey': survey,
+        'questions': questions,
+        'is_draft': resp is not None,
+    })

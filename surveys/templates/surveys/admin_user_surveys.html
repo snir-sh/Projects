@@ -2,12 +2,44 @@
 {% block content %}
   <div class="module">
     <h1>Surveys assigned to you</h1>
-    {% if surveys %}
-      <ul>
-        {% for s in surveys %}
-          <li><a href="{% url 'take_survey' s.id %}">{{ s.title }}</a> — {{ s.description }}</li>
-        {% endfor %}
-      </ul>
+    {% if survey_list %}
+      <table>
+        <thead>
+          <tr>
+            <th>Survey</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in survey_list %}
+            <tr>
+              <td>
+                <strong>{{ item.survey.title }}</strong>
+                {% if item.survey.description %}<br><small>{{ item.survey.description }}</small>{% endif %}
+              </td>
+              <td>
+                {% if item.completed %}
+                  <span style="color: green; font-weight: bold;">✓ Completed</span>
+                {% elif item.draft %}
+                  <span style="color: orange; font-weight: bold;">⚠ Draft in progress</span>
+                {% else %}
+                  <span style="color: gray;">New</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if item.completed %}
+                  <a class="button" href="{% url 'take_survey' item.survey.id %}">View/Edit</a>
+                {% elif item.draft %}
+                  <a class="button" href="{% url 'take_survey' item.survey.id %}" style="background-color: #E8A92D;">Resume</a>
+                {% else %}
+                  <a class="button" href="{% url 'take_survey' item.survey.id %}">Start</a>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     {% else %}
       <p>No surveys available for your group.</p>
     {% endif %}

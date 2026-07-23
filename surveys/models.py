@@ -47,12 +47,21 @@ class Question(models.Model):
 
 
 class Response(models.Model):
+    DRAFT = 'draft'
+    COMPLETED = 'completed'
+    STATUS_CHOICES = [
+        (DRAFT, 'Draft'),
+        (COMPLETED, 'Completed'),
+    ]
+    
     survey = models.ForeignKey(Survey, on_delete=models.CASCADE, related_name='responses')
     user_identifier = models.CharField(max_length=200, help_text='Identifier for the respondent (user id, email, or anon token)')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=DRAFT)
     submitted_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Response {self.id} to {self.survey} by {self.user_identifier}"
+        return f"Response {self.id} to {self.survey} by {self.user_identifier} ({self.status})"
 
 
 class Answer(models.Model):
