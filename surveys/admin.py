@@ -184,10 +184,10 @@ from django import forms as _forms
 UserModel = get_user_model()
 
 class AdminUserForm(_forms.ModelForm):
-    # single group selection
+    # single group selection using radio buttons (one user = one group)
     group = _forms.ModelChoiceField(
         queryset=Group.objects.all(), required=False,
-        widget=_forms.Select(attrs={'class': 'searchable-select'}), label='Group'
+        widget=_forms.RadioSelect(), label='Group'
     )
 
     class Meta:
@@ -204,8 +204,8 @@ class CustomUserAdmin(DjangoUserAdmin):
     form = AdminUserForm
     add_form = AdminUserForm
 
-    # Show username and assigned Group in the changelist instead of email
-    list_display = ('username', 'group_name', 'is_staff', 'is_active')
+    # Show username, group, admin status, and active status in the changelist
+    list_display = ('username', 'group_name', 'admin_status', 'active_status')
 
     # Hide the default admin list filters on the User changelist (no sidebar filters)
     list_filter = ()
@@ -215,6 +215,16 @@ class CustomUserAdmin(DjangoUserAdmin):
         g = obj.groups.first()
         return g.name if g else '-'
     group_name.short_description = 'Group'
+
+    def admin_status(self, obj):
+        """Display if user is admin (superuser)."""
+        return '✓ Admin' if obj.is_superuser else '-'
+    admin_status.short_description = _('סטטוס משתמש על')
+    
+    def active_status(self, obj):
+        """Display active status as Yes/No."""
+        return _('Yes') if obj.is_active else _('No')
+    active_status.short_description = _('פעיל')
 
     # Simplify add form to only request username/email (no password field shown)
     add_fieldsets = (
@@ -227,7 +237,8 @@ class CustomUserAdmin(DjangoUserAdmin):
     # Simplify change form fieldsets (omit password / auth-related widgets)
     fieldsets = (
         (None, {'fields': ('username',)}),
-        ('Status', {'fields': ('is_active', 'is_staff', 'is_superuser')}),
+        ('Group', {'fields': ('groups',)}),
+        ('Status', {'fields': ('is_active', 'is_superuser')}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
 
