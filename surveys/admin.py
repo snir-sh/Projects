@@ -64,7 +64,7 @@ class AdminUserForm(_forms.ModelForm):
 
     class Meta:
         model = UserModel
-        fields = ('username', 'email')
+        fields = ('username',)  # email intentionally omitted per request
 
 
 @admin.register(User)
@@ -80,13 +80,13 @@ class CustomUserAdmin(DjangoUserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('username', 'email'),
+            'fields': ('username',),
         }),
     )
 
     # Simplify change form fieldsets (omit password / auth-related widgets)
     fieldsets = (
-        (None, {'fields': ('username', 'email')}),
+        (None, {'fields': ('username',)}),
         ('Status', {'fields': ('is_active', 'is_staff', 'is_superuser')}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
