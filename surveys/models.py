@@ -23,7 +23,8 @@ class Question(models.Model):
     # Associate questions with Django auth Groups. If groups is empty, question is common to all users.
     groups = models.ManyToManyField(Group, blank=True, related_name='questions')
     # Each question belongs to a single Survey — create the Survey before adding Questions
-    survey = models.ForeignKey('Survey', on_delete=models.CASCADE, related_name='questions')
+    # Make nullable for now so migrations can be applied; later this can be made required
+    survey = models.ForeignKey('Survey', on_delete=models.CASCADE, related_name='questions', null=True, blank=True)
 
     def is_common(self):
         return self.groups.count() == 0
