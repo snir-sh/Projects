@@ -1,0 +1,36 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+  <h1>Add user</h1>
+  <form method="post">
+    {% csrf_token %}
+    {% if form and form.errors %}
+      <div class="messagelist">
+        <ul class="errorlist">
+          {{ form.errors.as_ul|safe }}
+        </ul>
+      </div>
+    {% endif %}
+    <div>
+      <label>Username: <input type="text" name="username" value="{{ request.POST.username|default:'' }}" required></label>
+    </div>
+    <fieldset>
+      <legend>Group</legend>
+      {% if groups %}
+        <select name="group" class="searchable-select" style="min-width:260px;min-height:32px;">
+          <option value="">(none)</option>
+          {% for g in groups %}
+            <option value="{{ g.id }}" {% if presel and g.id == presel %}selected{% endif %}>{{ g.name }}</option>
+          {% endfor %}
+        </select>
+      {% else %}
+        <em>No groups available</em>
+      {% endif %}
+    </fieldset>
+    <p>Note: default password is "password"</p>
+    <div style="margin-top:8px">
+      <button type="submit" name="_save">Save and exit</button>
+      <button type="submit" name="_addanother">Save and add another</button>
+    </div>
+  </form>
+{% endblock %}

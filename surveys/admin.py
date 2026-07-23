@@ -106,12 +106,7 @@ class CustomUserAdmin(DjangoUserAdmin):
         extra_context = extra_context or {}
         # always provide groups for template rendering
         extra_context['groups'] = Group.objects.all()
-        # For GET requests, redirect admins to the public users management UI so
-        # the add experience matches /users/ (simpler UX and single implementation).
         from django.urls import reverse
-        if request.method == 'GET':
-            return HttpResponseRedirect(reverse('manage_users'))
-
         if request.method == 'POST':
             form = Form(request.POST)
             if form.is_valid():
@@ -138,7 +133,8 @@ class CustomUserAdmin(DjangoUserAdmin):
                 sel = request.POST.get('group')
                 extra_context['presel'] = int(sel) if sel and sel.isdigit() else None
                 return super().add_view(request, form_url, extra_context=extra_context)
-        return super().add_view(request, form_url, extra_context=extra_context)
+        # For GET render a simplified admin add page that includes the group selector
+        return render(request, 'surveys/admin_custom_add_user.html', extra_context)
 
     def save_model(self, request, obj, form, change):
         # For change view -- ensure single group assignment saved
