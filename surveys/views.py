@@ -62,13 +62,23 @@ from django.shortcuts import redirect
 
 
 def index(request):
-    """Redirect root to the admin login page."""
-    return redirect('admin_login')
+    """Route users to correct page: admin users to admin panel, regular users to survey list."""
+    if request.user.is_authenticated:
+        if request.user.is_staff:
+            return redirect('admin:index')
+        else:
+            return redirect('admin_user_surveys')
+    return redirect('user_login')
 
 
 def redirect_admin_login(request):
-    """Redirect helper to send public routes to admin login."""
-    return redirect('admin_login')
+    """Redirect helper to send public routes to login."""
+    if request.user.is_authenticated:
+        if request.user.is_staff:
+            return redirect('admin:index')
+        else:
+            return redirect('admin_user_surveys')
+    return redirect('user_login')
 
 
 def manage_groups(request):
@@ -196,6 +206,19 @@ class AdminLoginView(LoginView):
                 return reverse('admin:index')
             return reverse('admin_user_surveys')
         return super().get_success_url()
+
+
+class UserLoginView(LoginView):
+    """Login page for regular users (non-staff). Redirects to survey dashboard after login."""
+    template_name = 'surveys/user_login.html'
+    
+    def get_success_url(self):
+        return reverse('admin_user_surveys')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = _('Survey Login')
+        return context
 
 
 @login_required
