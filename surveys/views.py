@@ -52,9 +52,12 @@ def questions_for_user(request, username=None):
 
 # --- Simple web UI views ---
 
+from django.shortcuts import redirect
+
+
 def index(request):
-    """Root dashboard linking to group/user management and basic API tests."""
-    return render(request, 'surveys/index.html', {})
+    """Redirect root to the login page (nice UI provided at /login/)."""
+    return redirect('login')
 
 
 def manage_groups(request):
