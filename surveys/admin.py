@@ -217,13 +217,19 @@ class CustomUserAdmin(DjangoUserAdmin):
     group_name.short_description = 'Group'
 
     def admin_status(self, obj):
-        """Display if user is admin (superuser)."""
-        return '✓ Admin' if obj.is_superuser else '-'
+        """Display if user is admin (superuser) with colored mark."""
+        html = '<span style="color: {}; font-weight: bold;">{}</span>'
+        if obj.is_superuser:
+            return format_html(html, 'green', '✓')
+        return format_html(html, 'red', '✗')
     admin_status.short_description = _('סטטוס משתמש על')
     
     def active_status(self, obj):
-        """Display active status as Yes/No."""
-        return _('Yes') if obj.is_active else _('No')
+        """Display active status with colored mark."""
+        html = '<span style="color: {}; font-weight: bold;">{}</span>'
+        if obj.is_active:
+            return format_html(html, 'green', '✓')
+        return format_html(html, 'red', '✗')
     active_status.short_description = _('פעיל')
 
     # Simplify add form to only request username/email (no password field shown)
@@ -237,7 +243,7 @@ class CustomUserAdmin(DjangoUserAdmin):
     # Simplify change form fieldsets (omit password / auth-related widgets)
     fieldsets = (
         (None, {'fields': ('username',)}),
-        ('Group', {'fields': ('groups',)}),
+        ('Group', {'fields': ('group',)}),
         ('Status', {'fields': ('is_active', 'is_superuser')}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
