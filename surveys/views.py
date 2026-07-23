@@ -65,7 +65,11 @@ def manage_groups(request):
         name = request.POST.get('name', '').strip()
         if name:
             UserType.objects.get_or_create(name=name)
-        return HttpResponseRedirect(reverse('manage_groups'))
+        # Differentiate button actions: if 'Save and add another' pressed, stay on the page.
+        # Otherwise (Save and exit) redirect to the dashboard (index).
+        if '_addanother' in request.POST:
+            return HttpResponseRedirect(reverse('manage_groups'))
+        return HttpResponseRedirect(reverse('index'))
 
     groups = UserType.objects.all().order_by('name')
     return render(request, 'surveys/groups.html', {'groups': groups})

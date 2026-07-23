@@ -6,7 +6,10 @@
     <form method="post">
       {% csrf_token %}
       <label>Name: <input type="text" name="name" required></label>
-      <button type="submit">Add Group</button>
+      <div style="margin-top:8px">
+        <button type="submit" name="_save">Save and exit</button>
+        <button type="submit" name="_addanother">Save and add another</button>
+      </div>
     </form>
 
     <h2>Existing</h2>
