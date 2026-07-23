@@ -17,9 +17,9 @@ urlpatterns = [
     path('surveys/', views.redirect_admin_login, name='manage_surveys'),
     path('surveys/<int:survey_id>/questions/add/', views.redirect_admin_login, name='add_question'),
 
-    # Auth - user login and logout
-    path('login/', views.UserLoginView.as_view(), name='user_login'),
-    path('logout/', auth_views.LogoutView.as_view(next_page='user_login'), name='logout'),
+    # Auth - public /login redirected to admin login to enforce single entrypoint
+    path('login/', views.redirect_admin_login, name='login'),
+    path('logout/', auth_views.LogoutView.as_view(next_page='admin_login'), name='logout'),
 
     # survey taking and admin-styled user survey dashboard remain available for authenticated users
     path('surveys/<int:survey_id>/take/', views.take_survey, name='take_survey'),

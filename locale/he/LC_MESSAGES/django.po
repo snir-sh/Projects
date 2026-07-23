@@ -146,21 +146,3 @@ msgstr "הסקר הוגש בהצלחה!"
 
 msgid "Survey draft saved."
 msgstr "טיוטת הסקר נשמרה."
-
-msgid "Survey Login"
-msgstr "כניסה לסקרים"
-
-msgid "Enter your credentials to answer surveys"
-msgstr "הזן את פרטיך כדי לענות על סקרים"
-
-msgid "Username"
-msgstr "שם משתמש"
-
-msgid "Password"
-msgstr "סיסמה"
-
-msgid "Login"
-msgstr "כניסה"
-
-msgid "Hebrew-only survey system"
-msgstr "מערכת סקרים בעברית בלבד"
