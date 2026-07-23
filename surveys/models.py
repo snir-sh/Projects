@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 
 
 class UserType(models.Model):
@@ -6,6 +7,26 @@ class UserType(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class UserTypeAssignment(models.Model):
+    """Simple many-to-many assignment of users to UserType groups.
+
+    This keeps the permissions model intentionally simple: groups exist
+    as UserType records but carry no automatic permissions. Admins (superusers)
+    retain full access. When creating a user in the admin, use this inline to
+    assign them to one or more UserType groups. Questions can be assigned to
+    UserType(s) and will be visible to users in those groups (or to everyone
+    if a question has no user_types).
+    """
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='user_type_assignments')
+    user_type = models.ForeignKey('UserType', on_delete=models.CASCADE, related_name='assignments')
+
+    class Meta:
+        unique_together = ('user', 'user_type')
+
+    def __str__(self):
+        return f"{self.user} → {self.user_type}"
 
 
 class Survey(models.Model):
