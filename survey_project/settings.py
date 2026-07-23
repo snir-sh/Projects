@@ -22,6 +22,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -67,6 +68,20 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Authentication redirects
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/groups/'
+
+# Internationalization
+LANGUAGE_CODE = 'en-us'
+LANGUAGES = [
+    ('en', 'English'),
+    ('he', 'עברית'),
+]
+LOCALE_PATHS = [
+    BASE_DIR / 'locale',
+]
+USE_I18N = True
+USE_L10N = True
+TIME_ZONE = 'UTC'
+USE_TZ = True
 
 # Default password for newly created non-admin users. Can be overridden via env var.
 DEFAULT_USER_PASSWORD = os.environ.get('DEFAULT_USER_PASSWORD', 'password')

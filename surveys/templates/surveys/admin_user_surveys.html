@@ -1,14 +1,15 @@
+{% load i18n %}
 {% extends "admin/base_site.html" %}
 {% block content %}
   <div class="module">
-    <h1>Surveys assigned to you</h1>
+    <h1>{% trans "Surveys assigned to you" %}</h1>
     {% if survey_list %}
       <table>
         <thead>
           <tr>
-            <th>Survey</th>
-            <th>Status</th>
-            <th>Action</th>
+            <th>{% trans "Survey" %}</th>
+            <th>{% trans "Status" %}</th>
+            <th>{% trans "Action" %}</th>
           </tr>
         </thead>
         <tbody>
@@ -20,20 +21,20 @@
               </td>
               <td>
                 {% if item.completed %}
-                  <span style="color: green; font-weight: bold;">✓ Completed</span>
+                  <span style="color: green; font-weight: bold;">✓ {% trans "Completed" %}</span>
                 {% elif item.draft %}
-                  <span style="color: orange; font-weight: bold;">⚠ Draft in progress</span>
+                  <span style="color: orange; font-weight: bold;">⚠ {% trans "Draft in progress" %}</span>
                 {% else %}
-                  <span style="color: gray;">New</span>
+                  <span style="color: gray;">{% trans "New" %}</span>
                 {% endif %}
               </td>
               <td>
                 {% if item.completed %}
-                  <a class="button" href="{% url 'take_survey' item.survey.id %}">View/Edit</a>
+                  <a class="button" href="{% url 'take_survey' item.survey.id %}">{% trans "View/Edit" %}</a>
                 {% elif item.draft %}
-                  <a class="button" href="{% url 'take_survey' item.survey.id %}" style="background-color: #E8A92D;">Resume</a>
+                  <a class="button" href="{% url 'take_survey' item.survey.id %}" style="background-color: #E8A92D;">{% trans "Resume" %}</a>
                 {% else %}
-                  <a class="button" href="{% url 'take_survey' item.survey.id %}">Start</a>
+                  <a class="button" href="{% url 'take_survey' item.survey.id %}">{% trans "Start" %}</a>
                 {% endif %}
               </td>
             </tr>
@@ -41,8 +42,8 @@
         </tbody>
       </table>
     {% else %}
-      <p>No surveys available for your group.</p>
+      <p>{% trans "No surveys available for your group." %}</p>
     {% endif %}
-    <p><a class="button" href="{% url 'logout' %}">Log out</a></p>
+    <p><a class="button" href="{% url 'logout' %}">{% trans "Log out" %}</a></p>
   </div>
 {% endblock %}

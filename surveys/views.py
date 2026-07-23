@@ -6,6 +6,7 @@ from django.db.models import Q
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
+from django.utils.translation import gettext_lazy as _
 
 from .models import Question, Survey, Response, Answer
 from django.contrib.auth.models import Group
@@ -289,11 +290,11 @@ def take_survey(request, survey_id):
         if 'submit' in request.POST:
             resp.status = Response.COMPLETED
             resp.save()
-            messages.success(request, f'Survey "{survey.title}" submitted successfully!')
+            messages.success(request, _('Survey submitted successfully!'))
             return render(request, 'surveys/take_survey_submitted.html', {'survey': survey})
         else:
             # Auto-save draft
-            messages.info(request, f'Survey draft saved.')
+            messages.info(request, _('Survey draft saved.'))
             return redirect('take_survey', survey_id=survey_id)
 
     # Prepare question structures for the template

@@ -1,3 +1,4 @@
+{% load i18n %}
 {% extends "admin/base_site.html" %}
 {% block content %}
   <div class="module">
@@ -5,7 +6,7 @@
     <p>{{ survey.description }}</p>
     {% if is_draft %}
       <div style="background-color: #FFF8DC; border: 1px solid #DAA520; padding: 10px; margin-bottom: 20px; border-radius: 4px;">
-        <strong>⚠ Resuming draft</strong> — Your previous responses have been loaded. Save or submit when ready.
+        <strong>⚠ {% trans "Resuming draft" %}</strong> — {% trans "Your previous responses have been loaded. Save or submit when ready." %}
       </div>
     {% endif %}
     <form method="post" class="survey-form">
@@ -27,7 +28,7 @@
             </div>
           {% elif q.type == 'multi_select' %}
             <div class="field-box">
-              <div class="help">Select up to {{ q.max_selections }} options.</div>
+              <div class="help">{% blocktrans count counter=q.max_selections %}Select up to {{ counter }} option.{% plural %}Select up to {{ counter }} options.{% endblocktrans %}</div>
               {% for opt in q.options %}
                 <div class="checkbox">
                   <label>
@@ -46,9 +47,9 @@
         </div>
       {% endfor %}
       <div class="submit-row">
-        <button type="submit" name="save" class="default" title="Save your responses as a draft and continue later">Save Draft</button>
-        <button type="submit" name="submit" class="default" style="background-color: #417690;">Submit</button>
-        <a class="button" href="{% url 'admin_user_surveys' %}">Back</a>
+        <button type="submit" name="save" class="default" title="{% trans 'Save your responses as a draft and continue later' %}">{% trans "Save Draft" %}</button>
+        <button type="submit" name="submit" class="default" style="background-color: #417690;">{% trans "Submit" %}</button>
+        <a class="button" href="{% url 'admin_user_surveys' %}">{% trans "Back" %}</a>
       </div>
     </form>
   </div>

@@ -1,3 +1,4 @@
+{% load i18n %}
 {% extends "admin/base_site.html" %}
 {% block content %}
   <div class="module">
@@ -10,8 +11,8 @@
         {% endfor %}
       </div>
     {% endif %}
-    <h1>Thank you</h1>
-    <p>Your responses for "{{ survey.title }}" have been submitted.</p>
-    <p><a class="button" href="{% url 'admin_user_surveys' %}">Back to surveys</a></p>
+    <h1>{% trans "Thank you" %}</h1>
+    <p>{% blocktrans with title=survey.title %}Your responses for "{{ title }}" have been submitted.{% endblocktrans %}</p>
+    <p><a class="button" href="{% url 'admin_user_surveys' %}">{% trans "Back to surveys" %}</a></p>
   </div>
 {% endblock %}
