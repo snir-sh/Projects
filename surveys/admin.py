@@ -76,6 +76,9 @@ class CustomUserAdmin(DjangoUserAdmin):
     form = AdminUserForm
     add_form = AdminUserForm
 
+    # Hide the default admin list filters on the User changelist (no sidebar filters)
+    list_filter = ()
+
     # Simplify add form to only request username/email (no password field shown)
     add_fieldsets = (
         (None, {
