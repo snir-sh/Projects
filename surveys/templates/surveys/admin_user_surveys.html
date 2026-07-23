@@ -2,6 +2,10 @@
 {% extends "admin/base_site.html" %}
 {% block content %}
   <div class="module">
+    <div style="float: right; margin-bottom: 10px;">
+      <a href="{% url 'admin_user_surveys' %}">English</a> | 
+      <a href="/he{% url 'admin_user_surveys' %}">עברית</a>
+    </div>
     <h1>{% trans "Surveys assigned to you" %}</h1>
     {% if survey_list %}
       <table>
