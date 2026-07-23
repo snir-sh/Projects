@@ -1,11 +1,15 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.i18n import set_language
 from . import views
 
 urlpatterns = [
     # Root UI -> go to admin login
     path('', views.index, name='index'),
+
+    # Language switching (Django's built-in view)
+    path('i18n/setlang/', set_language, name='set_language'),
 
     # Public management endpoints are disabled and redirect to admin login
     path('groups/', views.redirect_admin_login, name='manage_groups'),
