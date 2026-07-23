@@ -319,5 +319,3 @@ except Exception:
 class GroupAdmin(DjangoGroupAdmin):
     # Hide permissions field from the admin form
     exclude = ('permissions',)
-    # Use a custom template for the change form so button labels can be adjusted
-    change_form_template = 'admin/auth/group/change_form.html'
