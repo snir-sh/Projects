@@ -38,4 +38,34 @@
       </div>
     </form>
   </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const form = document.querySelector('.survey-form');
+      const checkboxGroups = {};
+      
+      // Organize checkboxes by question
+      form.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+        const questionId = checkbox.name;
+        if (!checkboxGroups[questionId]) {
+          checkboxGroups[questionId] = [];
+        }
+        checkboxGroups[questionId].push(checkbox);
+      });
+      
+      // Add change event listeners
+      Object.keys(checkboxGroups).forEach(questionId => {
+        const checkboxes = checkboxGroups[questionId];
+        const maxSelections = parseInt(checkboxes[0].parentElement.parentElement.querySelector('.help').textContent.match(/\d+/)[0]);
+        
+        checkboxes.forEach(checkbox => {
+          checkbox.addEventListener('change', function() {
+            const checkedCount = checkboxes.filter(cb => cb.checked).length;
+            checkboxes.forEach(cb => {
+              cb.disabled = checkedCount >= maxSelections && !cb.checked;
+            });
+          });
+        });
+      });
+    });
+  </script>
 {% endblock %}
