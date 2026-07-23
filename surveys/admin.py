@@ -231,9 +231,6 @@ class CustomUserAdmin(DjangoUserAdmin):
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
 
-    change_form_template = 'admin/auth/user/change_form.html'
-    add_form_template = 'admin/auth/user/add_form.html'
-
     def add_view(self, request, form_url='', extra_context=None):
         """Handle admin add-user POST in the same way as the public /users/ UI.
 
