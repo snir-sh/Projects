@@ -6,6 +6,7 @@ from django.forms.widgets import CheckboxSelectMultiple
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
 from django.utils.html import format_html
+from django.utils.translation import gettext_lazy as _
 from .models import Survey, Question, Response, Answer
 from django.contrib.auth.models import Group
 from django.conf import settings
@@ -41,12 +42,26 @@ class AnswerInline(admin.TabularInline):
 
 @admin.register(Response)
 class ResponseAdmin(admin.ModelAdmin):
-    list_display = ('id', 'survey', 'user_identifier', 'submitted_at')
-    list_filter = ('survey', 'submitted_at')
-    readonly_fields = ('survey', 'user_identifier', 'submitted_at')
-    fields = ('survey', 'user_identifier', 'submitted_at')
+    list_display = ('id', 'survey', 'user_identifier', 'status_display', 'submitted_at')
+    list_filter = ('survey', 'status', 'submitted_at')
+    readonly_fields = ('survey', 'user_identifier', 'submitted_at', 'updated_at')
+    fields = ('survey', 'user_identifier', 'status', 'submitted_at', 'updated_at')
     inlines = [AnswerInline]
     actions = ['export_as_csv']
+
+    def status_display(self, obj):
+        """Display status with color coding."""
+        if obj.status == Response.COMPLETED:
+            return format_html(
+                '<span style="color: green; font-weight: bold;">✓ {}</span>',
+                _('Completed')
+            )
+        else:  # DRAFT
+            return format_html(
+                '<span style="color: orange; font-weight: bold;">⏸ {}</span>',
+                _('Draft')
+            )
+    status_display.short_description = _('Status')
 
     def export_as_csv(self, request, queryset):
         """Export selected responses to CSV with all answers."""
