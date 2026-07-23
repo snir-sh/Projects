@@ -1,6 +1,7 @@
 from django.http import JsonResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth import get_user_model
+from django.contrib import messages
 from django.db.models import Q
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
@@ -249,6 +250,7 @@ def take_survey(request, survey_id):
                 key = f'question_{q.id}'
                 val = request.POST.get(key, '').strip()
                 Answer.objects.create(response=resp, question=q, answer_text=val)
+        messages.success(request, f'Survey "{survey.title}" submitted successfully!')
         return render(request, 'surveys/take_survey_submitted.html', {'survey': survey})
 
     # prepare question structures for the template

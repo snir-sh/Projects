@@ -1,6 +1,15 @@
 {% extends "admin/base_site.html" %}
 {% block content %}
   <div class="module">
+    {% if messages %}
+      <div class="messages">
+        {% for message in messages %}
+          <div class="messagelist">
+            <div class="success">{{ message }}</div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
     <h1>Thank you</h1>
     <p>Your responses for "{{ survey.title }}" have been submitted.</p>
     <p><a class="button" href="{% url 'admin_user_surveys' %}">Back to surveys</a></p>
