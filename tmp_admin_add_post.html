@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+
+<html lang="en-us" dir="ltr">
+<head>
+<title>dana | Change user | Django site admin</title>
+<link rel="stylesheet" href="/static/admin/css/base.css">
+
+  <link rel="stylesheet" href="/static/admin/css/dark_mode.css">
+  <script src="/static/admin/js/theme.js"></script>
+
+
+  <link rel="stylesheet" href="/static/admin/css/nav_sidebar.css">
+  <script src="/static/admin/js/nav_sidebar.js" defer></script>
+
+<link rel="stylesheet" href="/static/admin/css/forms.css">
+
+
+<script src="/admin/jsi18n/"></script>
+<script src="/static/admin/js/vendor/jquery/jquery.js"></script>
+<script src="/static/admin/js/calendar.js"></script>
+<script src="/static/admin/js/jquery.init.js"></script>
+<script src="/static/admin/js/admin/DateTimeShortcuts.js"></script>
+<script src="/static/admin/js/core.js"></script>
+<script src="/static/admin/js/admin/RelatedObjectLookups.js"></script>
+<script src="/static/admin/js/actions.js"></script>
+<script src="/static/admin/js/urlify.js"></script>
+<script src="/static/admin/js/prepopulate.js"></script>
+<script src="/static/admin/js/vendor/xregexp/xregexp.js"></script>
+
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/admin/css/responsive.css">
+    
+
+<meta name="robots" content="NONE,NOARCHIVE">
+</head>
+
+<body class=" app-auth model-user change-form"
+  data-admin-utc-offset="0">
+<a href="#content-start" class="skip-to-content-link">Skip to main content</a>
+<!-- Container -->
+<div id="container">
+
+    
+    <!-- Header -->
+    
+      <header id="header">
+        <div id="branding">
+        
+<div id="site-name"><a href="/admin/">Django administration</a></div>
+
+
+        </div>
+        
+        
+        <div id="user-tools">
+            
+                Welcome,
+                <strong>admin</strong>.
+            
+            
+                
+                    <a href="/">View site</a> /
+                
+                
+                    
+                    
+                
+                
+                <a href="/admin/password_change/">Change password</a> /
+                
+                <form id="logout-form" method="post" action="/admin/logout/">
+                    <input type="hidden" name="csrfmiddlewaretoken" value="fHBsjdBPz68ab7EEecYWfnzk5pyXTyXQIhBjmNfCV0G75JlXPTD0pMOQb45lBbh6">
+                    <button type="submit">Log out</button>
+                </form>
+                
+<button class="theme-toggle">
+  <span class="visually-hidden theme-label-when-auto">Toggle theme (current theme: auto)</span>
+  <span class="visually-hidden theme-label-when-light">Toggle theme (current theme: light)</span>
+  <span class="visually-hidden theme-label-when-dark">Toggle theme (current theme: dark)</span>
+  <svg aria-hidden="true" class="theme-icon-when-auto">
+    <use xlink:href="#icon-auto" />
+  </svg>
+  <svg aria-hidden="true" class="theme-icon-when-dark">
+    <use xlink:href="#icon-moon" />
+  </svg>
+  <svg aria-hidden="true" class="theme-icon-when-light">
+    <use xlink:href="#icon-sun" />
+  </svg>
+</button>
+
+            
+        </div>
+        
+        
+        
+      </header>
+    
+    <!-- END Header -->
+    
+      <nav aria-label="Breadcrumbs">
+        
+<div class="breadcrumbs">
+<a href="/admin/">Home</a>
+&rsaquo; <a href="/admin/auth/">Authentication and Authorization</a>
+&rsaquo; <a href="/admin/auth/user/">Users</a>
+&rsaquo; dana
+</div>
+
+      </nav>
+    
+    
+
+    <div class="main" id="main">
+      
+        
+          
+<button class="sticky toggle-nav-sidebar" id="toggle-nav-sidebar" aria-label="Toggle navigation"></button>
+<nav class="sticky" id="nav-sidebar" aria-label="Sidebar">
+  <input type="search" id="nav-filter"
+         placeholder="Start typing to filter…"
+         aria-label="Filter navigation items">
+  
+
+
+  
+    <div class="app-auth module current-app">
+      <table>
+        <caption>
+          <a href="/admin/auth/" class="section" title="Models in the Authentication and Authorization application">Authentication and Authorization</a>
+        </caption>
+        <thead class="visually-hidden">
+          <tr>
+            <th scope="col">Model name</th>
+            <th scope="col">Add link</th>
+            <th scope="col">Change or view list link</th>
+          </tr>
+        </thead>
+        
+          
+            <tr class="model-group">
+              <th scope="row" id="auth-group">
+                
+                  <a href="/admin/auth/group/">Groups</a>
+                
+              </th>
+
+              
+                <td><a href="/admin/auth/group/add/" class="addlink" aria-describedby="auth-group">Add</a></td>
+              
+
+              
+            </tr>
+          
+        
+          
+            <tr class="model-user current-model">
+              <th scope="row" id="auth-user">
+                
+                  <a href="/admin/auth/user/" aria-current="page">Users</a>
+                
+              </th>
+
+              
+                <td><a href="/admin/auth/user/add/" class="addlink" aria-describedby="auth-user">Add</a></td>
+              
+
+              
+            </tr>
+          
+        
+      </table>
+    </div>
+  
+    <div class="app-surveys module">
+      <table>
+        <caption>
+          <a href="/admin/surveys/" class="section" title="Models in the Surveys application">Surveys</a>
+        </caption>
+        <thead class="visually-hidden">
+          <tr>
+            <th scope="col">Model name</th>
+            <th scope="col">Add link</th>
+            <th scope="col">Change or view list link</th>
+          </tr>
+        </thead>
+        
+          
+            <tr class="model-answer">
+              <th scope="row" id="surveys-answer">
+                
+                  <a href="/admin/surveys/answer/">Answers</a>
+                
+              </th>
+
+              
+                <td><a href="/admin/surveys/answer/add/" class="addlink" aria-describedby="surveys-answer">Add</a></td>
+              
+
+              
+            </tr>
+          
+        
+          
+            <tr class="model-question">
+              <th scope="row" id="surveys-question">
+                
+                  <a href="/admin/surveys/question/">Questions</a>
+                
+              </th>
+
+              
+                <td><a href="/admin/surveys/question/add/" class="addlink" aria-describedby="surveys-question">Add</a></td>
+              
+
+              
+            </tr>
+          
+        
+          
+            <tr class="model-response">
+              <th scope="row" id="surveys-response">
+                
+                  <a href="/admin/surveys/response/">Responses</a>
+                
+              </th>
+
+              
+                <td><a href="/admin/surveys/response/add/" class="addlink" aria-describedby="surveys-response">Add</a></td>
+              
+
+              
+            </tr>
+          
+        
+          
+            <tr class="model-survey">
+              <th scope="row" id="surveys-survey">
+                
+                  <a href="/admin/surveys/survey/">Surveys</a>
+                
+              </th>
+
+              
+                <td><a href="/admin/surveys/survey/add/" class="addlink" aria-describedby="surveys-survey">Add</a></td>
+              
+
+              
+            </tr>
+          
+        
+          
+            <tr class="model-usertype">
+              <th scope="row" id="surveys-usertype">
+                
+                  <a href="/admin/surveys/usertype/">User types</a>
+                
+              </th>
+
+              
+                <td><a href="/admin/surveys/usertype/add/" class="addlink" aria-describedby="surveys-usertype">Add</a></td>
+              
+
+              
+            </tr>
+          
+        
+      </table>
+    </div>
+  
+
+
+</nav>
+
+        
+      
+      <main id="content-start" class="content" tabindex="-1">
+        
+          
+            <ul class="messagelist">
+              <li class="success">The user “<a href="/admin/auth/user/5/change/">dana</a>” was added successfully. You may edit it again below.</li>
+            </ul>
+          
+        
+        <!-- Content -->
+        <div id="content" class="colM">
+          
+          <h1>Change user</h1>
+          <h2>dana</h2>
+          
+  
+  <div id="content-main">
+
+
+  <ul class="object-tools">
+    
+      
+
+<li>
+    
+    <a href="/admin/auth/user/5/history/" class="historylink">History</a>
+</li>
+
+
+
+    
+  </ul>
+
+
+<form method="post" id="user_form" novalidate><input type="hidden" name="csrfmiddlewaretoken" value="fHBsjdBPz68ab7EEecYWfnzk5pyXTyXQIhBjmNfCV0G75JlXPTD0pMOQb45lBbh6">
+<div>
+
+
+
+
+
+
+
+  <fieldset class="module aligned ">
+    
+    
+    
+        <div class="form-row field-username">
+            
+            
+                
+                <div>
+                    
+                        <div class="flex-container">
+                            
+                                <label class="required" for="id_username">Username:</label>
+                                
+                                    <input type="text" name="username" value="dana" class="vTextField" maxlength="150" required aria-describedby="id_username_helptext" id="id_username">
+                                
+                            
+                        </div>
+                    
+                        <div class="help" id="id_username_helptext">
+                            <div>Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.</div>
+                        </div>
+                    
+                </div>
+                
+            
+            
+        </div>
+    
+    
+</fieldset>
+
+
+  <fieldset class="module aligned " aria-labelledby="fieldset-0-1-heading">
+    
+        
+        <h2 id="fieldset-0-1-heading" class="fieldset-heading">Status</h2>
+        
+    
+    
+    
+        <div class="form-row field-is_active">
+            
+            
+                
+                <div>
+                    
+                        <div class="flex-container checkbox-row">
+                            
+                                <input type="checkbox" name="is_active" aria-describedby="id_is_active_helptext" id="id_is_active" checked><label class="vCheckboxLabel" for="id_is_active">Active</label>
+                            
+                        </div>
+                    
+                        <div class="help" id="id_is_active_helptext">
+                            <div>Designates whether this user should be treated as active. Unselect this instead of deleting accounts.</div>
+                        </div>
+                    
+                </div>
+                
+            
+            
+        </div>
+    
+        <div class="form-row field-is_staff">
+            
+            
+                
+                <div>
+                    
+                        <div class="flex-container checkbox-row">
+                            
+                                <input type="checkbox" name="is_staff" aria-describedby="id_is_staff_helptext" id="id_is_staff"><label class="vCheckboxLabel" for="id_is_staff">Staff status</label>
+                            
+                        </div>
+                    
+                        <div class="help" id="id_is_staff_helptext">
+                            <div>Designates whether the user can log into this admin site.</div>
+                        </div>
+                    
+                </div>
+                
+            
+            
+        </div>
+    
+        <div class="form-row field-is_superuser">
+            
+            
+                
+                <div>
+                    
+                        <div class="flex-container checkbox-row">
+                            
+                                <input type="checkbox" name="is_superuser" aria-describedby="id_is_superuser_helptext" id="id_is_superuser"><label class="vCheckboxLabel" for="id_is_superuser">Superuser status</label>
+                            
+                        </div>
+                    
+                        <div class="help" id="id_is_superuser_helptext">
+                            <div>Designates that this user has all permissions without explicitly assigning them.</div>
+                        </div>
+                    
+                </div>
+                
+            
+            
+        </div>
+    
+    
+</fieldset>
+
+
+  <fieldset class="module aligned " aria-labelledby="fieldset-0-2-heading">
+    
+        
+        <h2 id="fieldset-0-2-heading" class="fieldset-heading">Important dates</h2>
+        
+    
+    
+    
+        <div class="form-row field-last_login">
+            
+            
+                <fieldset><legend for="id_last_login">Last login:</legend>
+                <div>
+                    
+                        <div class="flex-container">
+                            
+                                
+                                
+                                    <p class="datetime">
+  <label for="id_last_login_0">Date:</label> <input type="text" name="last_login_0" class="vDateField" size="10" id="id_last_login_0" aria-describedby="id_last_login_timezone_warning_helptext">
+
+<br>
+  <label for="id_last_login_1">Time:</label> <input type="text" name="last_login_1" class="vTimeField" size="8" id="id_last_login_1" aria-describedby="id_last_login_timezone_warning_helptext">
+
+
+</p>
+                                
+                            
+                        </div>
+                    
+                </div>
+                </fieldset>
+            
+            
+        </div>
+    
+        <div class="form-row field-date_joined">
+            
+            
+                <fieldset><legend class="required" for="id_date_joined">Date joined:</legend>
+                <div>
+                    
+                        <div class="flex-container">
+                            
+                                
+                                
+                                    <p class="datetime">
+  <label for="id_date_joined_0">Date:</label> <input type="text" name="date_joined_0" value="2026-07-23" class="vDateField" size="10" required id="id_date_joined_0" aria-describedby="id_date_joined_timezone_warning_helptext">
+
+<br>
+  <label for="id_date_joined_1">Time:</label> <input type="text" name="date_joined_1" value="10:43:53" class="vTimeField" size="8" required id="id_date_joined_1" aria-describedby="id_date_joined_timezone_warning_helptext">
+
+
+</p><input type="hidden" name="initial-date_joined_0" value="2026-07-23" id="initial-id_date_joined_0"><input type="hidden" name="initial-date_joined_1" value="10:43:53" id="initial-id_date_joined_1">
+                                
+                            
+                        </div>
+                    
+                </div>
+                </fieldset>
+            
+            
+        </div>
+    
+    
+</fieldset>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="submit-row">
+
+<input type="submit" value="Save" class="default" name="_save">
+
+<input type="submit" value="Save and add another" name="_addanother">
+<input type="submit" value="Save and continue editing" name="_continue">
+
+
+    
+    <a role="button" href="/admin/auth/user/5/delete/" class="deletelink">Delete</a>
+
+
+</div>
+
+
+
+    <script id="django-admin-form-add-constants"
+            src="/static/admin/js/change_form.js"
+            
+            async>
+    </script>
+
+
+
+
+<script id="django-admin-prepopulated-fields-constants"
+        src="/static/admin/js/prepopulate_init.js"
+        data-prepopulated-fields="[]">
+</script>
+
+
+</div>
+</form></div>
+
+  
+
+          
+          <br class="clear">
+        </div>
+        <!-- END Content -->
+      </main>
+    </div>
+    <footer id="footer"></footer>
+</div>
+<!-- END Container -->
+
+<!-- SVGs -->
+<svg xmlns="http://www.w3.org/2000/svg" class="base-svgs">
+  <symbol viewBox="0 0 24 24" id="icon-auto"><path d="M0 0h24v24H0z" fill="currentColor"/><path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2V4a8 8 0 1 0 0 16z"/></symbol>
+  <symbol viewBox="0 0 24 24" id="icon-moon"><path d="M0 0h24v24H0z" fill="currentColor"/><path d="M10 7a7 7 0 0 0 12 4.9v.1c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2h.1A6.979 6.979 0 0 0 10 7zm-6 5a8 8 0 0 0 15.062 3.762A9 9 0 0 1 8.238 4.938 7.999 7.999 0 0 0 4 12z"/></symbol>
+  <symbol viewBox="0 0 24 24" id="icon-sun"><path d="M0 0h24v24H0z" fill="currentColor"/><path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM3.515 4.929l1.414-1.414L7.05 5.636 5.636 7.05 3.515 4.93zM16.95 18.364l1.414-1.414 2.121 2.121-1.414 1.414-2.121-2.121zm2.121-14.85l1.414 1.415-2.121 2.121-1.414-1.414 2.121-2.121zM5.636 16.95l1.414 1.414-2.121 2.121-1.414-1.414 2.121-2.121zM23 11v2h-3v-2h3zM4 11v2H1v-2h3z"/></symbol>
+</svg>
+<!-- END SVGs -->
+
+</body>
+</html>

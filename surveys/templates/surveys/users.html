@@ -10,12 +10,17 @@
       {% endif %}
       <label>Username: <input type="text" name="username" value="{{ request.POST.username|default:'' }}" required></label>
       <fieldset>
-        <legend>Assign groups</legend>
-        {% for g in groups %}
-          <label><input type="checkbox" name="groups" value="{{ g.id }}" {% if presel and g.id in presel %}checked{% endif %}> {{ g.name }}</label><br>
-        {% empty %}
+        <legend>Assign group</legend>
+        {% if groups %}
+          <select name="group" class="searchable-select" style="min-width:260px;min-height:32px;">
+            <option value="">(none)</option>
+            {% for g in groups %}
+              <option value="{{ g.id }}" {% if presel and g.id == presel %}selected{% endif %}>{{ g.name }}</option>
+            {% endfor %}
+          </select>
+        {% else %}
           <em>No groups available</em>
-        {% endfor %}
+        {% endif %}
       </fieldset>
       <p>Note: default password is "password"</p>
       <div style="margin-top:8px">
@@ -25,6 +30,15 @@
     </form>
 
     <h2>Existing users</h2>
+
+    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+    <script>
+      document.addEventListener('DOMContentLoaded', function(){
+        var el = document.querySelector('.searchable-select');
+        if(el){ new Choices(el, {searchEnabled:true, shouldSort:false, itemSelectText:''}); }
+      });
+    </script>
     <ul>
       {% for u, uts in users %}
         <li>{{ u.username }} — groups: {{ uts|join:", " }}</li>

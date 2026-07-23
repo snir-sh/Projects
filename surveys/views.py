@@ -4,7 +4,8 @@ from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.urls import reverse
 
-from .models import Question, UserType, UserTypeAssignment, Survey
+from .models import Question, Survey
+from django.contrib.auth.models import Group
 
 
 def questions_for_user(request, username=None):
@@ -17,8 +18,8 @@ def questions_for_user(request, username=None):
 
     If no username can be determined, return 400.
     Visibility rules:
-    - Questions with no user_types are common and visible to everyone.
-    - Questions assigned to any UserType the user belongs to are visible to that user.
+    - Questions with no groups are common and visible to everyone.
+    - Questions assigned to any Group the user belongs to are visible to that user.
     """
     User = get_user_model()
 
@@ -32,9 +33,10 @@ def questions_for_user(request, username=None):
 
     user = get_object_or_404(User, username=username)
 
-    user_type_ids = list(user.user_type_assignments.values_list('user_type', flat=True))
+    # gather group ids for the user
+    user_group_ids = list(user.groups.values_list('id', flat=True))
 
-    qs = Question.objects.filter(Q(user_types__isnull=True) | Q(user_types__in=user_type_ids)).distinct()
+    qs = Question.objects.filter(Q(groups__isnull=True) | Q(groups__in=user_group_ids)).distinct()
 
     data = []
     for q in qs:
@@ -43,8 +45,8 @@ def questions_for_user(request, username=None):
             'text': q.text,
             'question_type': q.question_type,
             'required': q.required,
-            'surveys': [s.title for s in q.surveys.all()],
-            'user_types': [ut.name for ut in q.user_types.all()],
+            'survey': q.survey.title if q.survey else None,
+            'groups': [g.name for g in q.groups.all()],
         })
 
     return JsonResponse(data, safe=False)
@@ -61,17 +63,16 @@ def index(request):
 
 
 def manage_groups(request):
+    # Manage Django auth Groups
     if request.method == 'POST':
         name = request.POST.get('name', '').strip()
         if name:
-            UserType.objects.get_or_create(name=name)
-        # Differentiate button actions: if 'Save and add another' pressed, stay on the page.
-        # Otherwise (Save and exit) redirect to the dashboard (index).
+            Group.objects.get_or_create(name=name)
         if '_addanother' in request.POST:
             return HttpResponseRedirect(reverse('manage_groups'))
         return HttpResponseRedirect(reverse('index'))
 
-    groups = UserType.objects.all().order_by('name')
+    groups = Group.objects.all().order_by('name')
     return render(request, 'surveys/groups.html', {'groups': groups})
 
 
@@ -80,45 +81,42 @@ def manage_users(request):
     error = None
     if request.method == 'POST':
         username = request.POST.get('username', '').strip()
-        selected = request.POST.getlist('groups')
+        selected = request.POST.get('group')  # single group selection
         if not username:
             error = 'Username is required.'
         else:
             user, created = User.objects.get_or_create(username=username)
-            # set default password if newly created or to reset
             if created:
                 user.set_password('password')
                 user.email = ''
                 user.save()
-            # clear existing assignments and set new ones
-            UserTypeAssignment.objects.filter(user=user).delete()
-            for gid in selected:
-                try:
-                    ut = UserType.objects.get(id=int(gid))
-                    UserTypeAssignment.objects.get_or_create(user=user, user_type=ut)
-                except Exception:
-                    continue
+            # assign single group
+            try:
+                if selected and selected.isdigit():
+                    g = Group.objects.get(id=int(selected))
+                    user.groups.set([g])
+                else:
+                    user.groups.clear()
+            except Exception:
+                pass
         if error:
-            # re-render the page with error and preserve selections
-            groups = UserType.objects.all().order_by('name')
+            groups = Group.objects.all().order_by('name')
             users = User.objects.exclude(is_superuser=True).order_by('username')
             user_map = []
             for u in users:
-                uts = [a.user_type.name for a in u.user_type_assignments.select_related('user_type')]
-                user_map.append((u, uts))
-            return render(request, 'surveys/users.html', {'groups': groups, 'users': user_map, 'error': error, 'presel': [int(g) for g in selected if g.isdigit()]})
+                gnames = [g.name for g in u.groups.all()]
+                user_map.append((u, gnames))
+            return render(request, 'surveys/users.html', {'groups': groups, 'users': user_map, 'error': error, 'presel': int(selected) if selected and selected.isdigit() else None})
 
-        # Redirect behavior depending on button
         if '_addanother' in request.POST:
             return HttpResponseRedirect(reverse('manage_users'))
         return HttpResponseRedirect(reverse('index'))
 
-    groups = UserType.objects.all().order_by('name')
+    groups = Group.objects.all().order_by('name')
     User = get_user_model()
     users = User.objects.exclude(is_superuser=True).order_by('username')
-    # gather assignments
     user_map = []
     for u in users:
-        uts = [a.user_type.name for a in u.user_type_assignments.select_related('user_type')]
-        user_map.append((u, uts))
+        gnames = [g.name for g in u.groups.all()]
+        user_map.append((u, gnames))
     return render(request, 'surveys/users.html', {'groups': groups, 'users': user_map})

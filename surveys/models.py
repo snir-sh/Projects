@@ -1,32 +1,6 @@
 from django.db import models
 from django.conf import settings
-
-
-class UserType(models.Model):
-    name = models.CharField(max_length=100, unique=True)
-
-    def __str__(self):
-        return self.name
-
-
-class UserTypeAssignment(models.Model):
-    """Simple many-to-many assignment of users to UserType groups.
-
-    This keeps the permissions model intentionally simple: groups exist
-    as UserType records but carry no automatic permissions. Admins (superusers)
-    retain full access. When creating a user in the admin, use this inline to
-    assign them to one or more UserType groups. Questions can be assigned to
-    UserType(s) and will be visible to users in those groups (or to everyone
-    if a question has no user_types).
-    """
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='user_type_assignments')
-    user_type = models.ForeignKey('UserType', on_delete=models.CASCADE, related_name='assignments')
-
-    class Meta:
-        unique_together = ('user', 'user_type')
-
-    def __str__(self):
-        return f"{self.user} → {self.user_type}"
+from django.contrib.auth.models import Group
 
 
 class Survey(models.Model):
@@ -46,12 +20,13 @@ class Question(models.Model):
     text = models.TextField()
     question_type = models.CharField(max_length=20, choices=QUESTION_TYPES, default=TEXT)
     required = models.BooleanField(default=False)
-    # If user_types is empty, treat the question as common to all users
-    user_types = models.ManyToManyField(UserType, blank=True, related_name='questions')
-    surveys = models.ManyToManyField(Survey, blank=True, related_name='questions')
+    # Associate questions with Django auth Groups. If groups is empty, question is common to all users.
+    groups = models.ManyToManyField(Group, blank=True, related_name='questions')
+    # Each question belongs to a single Survey — create the Survey before adding Questions
+    survey = models.ForeignKey('Survey', on_delete=models.CASCADE, related_name='questions')
 
     def is_common(self):
-        return self.user_types.count() == 0
+        return self.groups.count() == 0
 
     def __str__(self):
         return (self.text[:75] + '...') if len(self.text) > 75 else self.text

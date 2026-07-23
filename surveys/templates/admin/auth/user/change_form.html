@@ -1,5 +1,9 @@
 {% extends "admin/change_form.html" %}
 
+{% block extrahead %}
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+{% endblock %}
+
 {% block content %}
   {% if form.errors %}
     <div class="messagelist">
@@ -9,12 +13,30 @@
     </div>
   {% endif %}
   {{ block.super }}
-  {% if form.user_types %}
+  <style>.form-row.field-email{display:none !important;}</style>
+  {% if groups %}
     <div class="module">
-      <h2>Groups</h2>
-      <div class="form-row">{{ form.user_types }}</div>
+      <h2>Group</h2>
+      <div class="form-row">
+        <select name="group" class="searchable-select" style="min-width:260px;min-height:32px;">
+          <option value="">(none)</option>
+          {% for g in groups %}
+            <option value="{{ g.id }}" {% if presel and g.id == presel %}selected{% endif %}>{{ g.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
     </div>
   {% endif %}
+{% endblock %}
+
+{% block footer %}
+  <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function(){
+      var el = document.querySelector('.searchable-select');
+      if(el){ new Choices(el, {searchEnabled:true, shouldSort:false, itemSelectText:''}); }
+    });
+  </script>
 {% endblock %}
 
 {% block submit_buttons %}

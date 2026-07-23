@@ -4,17 +4,8 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.forms.widgets import CheckboxSelectMultiple
 from django.http import HttpResponseRedirect
-from .models import UserType, Survey, Question, Response, Answer, UserTypeAssignment
-
-
-@admin.register(UserType)
-class UserTypeAdmin(admin.ModelAdmin):
-    list_display = ('name',)
-
-
-class UserTypeAssignmentInline(admin.TabularInline):
-    model = UserTypeAssignment
-    extra = 0
+from .models import Survey, Question, Response, Answer
+from django.contrib.auth.models import Group
 
 
 class AnswerInline(admin.TabularInline):
@@ -36,7 +27,7 @@ class SurveyAdmin(admin.ModelAdmin):
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
     list_display = ('text', 'question_type', 'required', 'is_common')
-    filter_horizontal = ('user_types', 'surveys')
+    filter_horizontal = ('groups',)
 
 
 @admin.register(Answer)
@@ -44,8 +35,8 @@ class AnswerAdmin(admin.ModelAdmin):
     list_display = ('response', 'question')
 
 
-# Integrate UserType assignment into the Django User admin so that when creating
-# a user an admin can select which UserType/group(s) they belong to.
+# Integrate Group assignment into the Django User admin so that when creating
+# a user an admin can select which single Group they belong to.
 User = get_user_model()
 try:
     admin.site.unregister(User)
@@ -53,14 +44,16 @@ except Exception:
     pass
 
 
-# Provide a ModelForm that includes a user_types field (checkboxes) so the
+# Provide a ModelForm that includes a single group field so the
 # admin can render it even though it's not a direct User model field.
 from django import forms as _forms
 UserModel = get_user_model()
 
 class AdminUserForm(_forms.ModelForm):
-    user_types = _forms.ModelMultipleChoiceField(
-        queryset=UserType.objects.all(), required=False, widget=CheckboxSelectMultiple, label='Groups'
+    # single group selection
+    group = _forms.ModelChoiceField(
+        queryset=Group.objects.all(), required=False,
+        widget=_forms.Select(attrs={'class': 'searchable-select'}), label='Group'
     )
 
     class Meta:
@@ -73,7 +66,7 @@ class CustomUserAdmin(DjangoUserAdmin):
     # Remove the UserTypeAssignment inline from the admin UI
     inlines = ()
 
-    # Use our custom forms for add/change so we can include user_types
+    # Use our custom forms for add/change so we can include the single group field
     form = AdminUserForm
     add_form = AdminUserForm
 
@@ -103,13 +96,22 @@ class CustomUserAdmin(DjangoUserAdmin):
 
         - Validates username is present
         - Sets default password for new users
-        - Assigns UserType groups from the submitted user_types field
+        - Assigns Group from the submitted group field
         - Redirects based on button pressed: Save and add another -> stay on add; Save and exit -> go to index
         """
         from django.contrib import messages
         from django.urls import reverse
 
         Form = self.get_form(request)
+        extra_context = extra_context or {}
+        # always provide groups for template rendering
+        extra_context['groups'] = Group.objects.all()
+        # For GET requests, redirect admins to the public users management UI so
+        # the add experience matches /users/ (simpler UX and single implementation).
+        from django.urls import reverse
+        if request.method == 'GET':
+            return HttpResponseRedirect(reverse('manage_users'))
+
         if request.method == 'POST':
             form = Form(request.POST)
             if form.is_valid():
@@ -118,32 +120,54 @@ class CustomUserAdmin(DjangoUserAdmin):
                 if not obj.pk:
                     obj.set_password('password')
                 obj.save()
-                # assignments
-                selected = form.cleaned_data.get('user_types', []) or []
-                UserTypeAssignment.objects.filter(user=obj).delete()
-                for ut in selected:
-                    UserTypeAssignment.objects.get_or_create(user=obj, user_type=ut)
+                # assignment: single group
+                selected = form.cleaned_data.get('group')
+                try:
+                    if selected:
+                        obj.groups.set([selected])
+                    else:
+                        obj.groups.clear()
+                except Exception:
+                    pass
                 messages.success(request, f'User "{obj.username}" created.')
                 if '_addanother' in request.POST:
                     return HttpResponseRedirect(reverse('admin:auth_user_add'))
                 return HttpResponseRedirect(reverse('index'))
             else:
                 # Let the admin render the form with errors (our templates show errors)
-                extra_context = extra_context or {}
-                extra_context['presel'] = [int(x) for x in request.POST.getlist('user_types') if x.isdigit()]
+                sel = request.POST.get('group')
+                extra_context['presel'] = int(sel) if sel and sel.isdigit() else None
                 return super().add_view(request, form_url, extra_context=extra_context)
         return super().add_view(request, form_url, extra_context=extra_context)
 
     def save_model(self, request, obj, form, change):
-        # For change view -- ensure assignments saved
+        # For change view -- ensure single group assignment saved
         obj.save()
         try:
-            selected = form.cleaned_data.get('user_types', [])
+            selected = form.cleaned_data.get('group')
         except Exception:
-            selected = []
-        UserTypeAssignment.objects.filter(user=obj).delete()
-        for ut in selected:
-            UserTypeAssignment.objects.get_or_create(user=obj, user_type=ut)
+            selected = None
+        try:
+            if selected:
+                obj.groups.set([selected])
+            else:
+                obj.groups.clear()
+        except Exception:
+            pass
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        # Provide groups and current selection to the change template
+        extra_context = extra_context or {}
+        extra_context['groups'] = Group.objects.all()
+        try:
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            obj = User.objects.get(pk=object_id)
+            g = obj.groups.first()
+            extra_context['presel'] = g.id if g else None
+        except Exception:
+            extra_context['presel'] = None
+        return super().change_view(request, object_id, form_url, extra_context=extra_context)
 
 
 # Customize the built-in auth Group admin to hide permissions and adjust buttons
