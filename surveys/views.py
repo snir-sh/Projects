@@ -187,7 +187,7 @@ def add_question(request, survey_id):
 # --- Admin-facing simplified login and survey dashboard for non-staff users ---
 class AdminLoginView(LoginView):
     """Use at /admin/login/ so non-staff users are redirected to their survey dashboard."""
-    template_name = 'admin/auth/user/login.html'
+    template_name = 'admin/login.html'
 
     def get_success_url(self):
         user = getattr(self.request, 'user', None)
