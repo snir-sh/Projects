@@ -23,6 +23,12 @@
         </label>
         <div style="font-size:0.9em;color:#444">Used when Type is Choice or Multi-select.</div>
       </div>
+      <div id="choice-images-row" style="display:none; margin-top:8px;">
+        <label>Image URLs for multi-select options (one per line, matching the options order):<br>
+          <textarea name="choice_images" rows="4" cols="60" placeholder="https://example.com/image-1.jpg\nhttps://example.com/image-2.jpg"></textarea>
+        </label>
+        <div style="font-size:0.9em;color:#444">Optional. Leave a line empty if an option should have no image.</div>
+      </div>
       <div id="maxsel-row" style="display:none;margin-top:8px">
         <label>Max selections for multi-select: <input type="number" name="max_selections" value="3" min="1" style="width:80px"></label>
       </div>
@@ -34,20 +40,13 @@
         function toggleChoices(){
           var t=document.getElementById('qtype');
           var row=document.getElementById('choices-row');
+          var imageRow=document.getElementById('choice-images-row');
           var maxrow=document.getElementById('maxsel-row');
           var mtrow=document.getElementById('multitext-row');
           row.style.display = (t.value === 'choice' || t.value === 'multi_select') ? 'block' : 'none';
+          imageRow.style.display = (t.value === 'multi_select') ? 'block' : 'none';
           maxrow.style.display = (t.value === 'multi_select') ? 'block' : 'none';
           mtrow.style.display = (t.value === 'multi_text') ? 'block' : 'none';
-        }
-        // init on load
-        document.addEventListener('DOMContentLoaded', function(){ toggleChoices(); });
-      </script>
-      <script>
-        function toggleChoices(){
-          var t=document.getElementById('qtype');
-          var row=document.getElementById('choices-row');
-          row.style.display = t.value === 'choice' ? 'block' : 'none';
         }
         // init on load
         document.addEventListener('DOMContentLoaded', function(){ toggleChoices(); });

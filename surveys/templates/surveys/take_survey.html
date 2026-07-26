@@ -35,10 +35,16 @@
               <div style="font-size: 12px; color: #666; margin-bottom: 10px; padding: 8px; background: #f0f0f0; border-radius: 4px;">
                 <strong>💡 {% trans "Scoring" %}</strong>: {% trans "3 selections" %} = 3,2,1 {% trans "points" %} | {% trans "2 selections" %} = 1,1 {% trans "points" %} | {% trans "1 selection" %} = 1 {% trans "point" %}
               </div>
-              {% for opt in q.options %}
+              {% for opt in q.option_items %}
                 <div class="checkbox">
                   <label>
-                    <input type="checkbox" name="question_{{ q.id }}" value="{{ opt|escape }}" data-existing="{{ q.existing_answer|default:'' }}" class="multi-select-checkbox"> {{ opt }} <span class="point-value"></span>
+                    <input type="checkbox" name="question_{{ q.id }}" value="{{ opt.label|escape }}" data-existing="{{ q.existing_answer|default:'' }}" class="multi-select-checkbox">
+                    {% if opt.image_url %}
+                      <a href="{{ opt.image_url }}" target="_blank" rel="noopener noreferrer">
+                        <img src="{{ opt.image_url }}" alt="{{ opt.label }}" style="max-width: 90px; max-height: 90px; object-fit: cover; display: block; margin: 8px 0; border-radius: 6px;">
+                      </a>
+                    {% endif %}
+                    {{ opt.label }} <span class="point-value"></span>
                   </label>
                 </div>
               {% endfor %}

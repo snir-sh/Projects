@@ -33,6 +33,7 @@ class Question(models.Model):
     question_type = models.CharField(max_length=20, choices=QUESTION_TYPES, default=TEXT)
     # For choice and multi-select questions, newline-separated options stored here (one per line)
     choices = models.TextField(blank=True, help_text='One option per line. Used when question_type is Choice or Multi-select')
+    choice_images = models.TextField(blank=True, help_text='Optional image URL per line. Line order should match the options above for multi-select questions')
     # For multi-select, limit how many options can be picked
     max_selections = models.PositiveIntegerField(default=3, help_text='Maximum selections allowed for multi-select questions')
     # For multi-text, number of text inputs to render
@@ -47,12 +48,51 @@ class Question(models.Model):
     def is_common(self):
         return self.groups.count() == 0
 
+    def get_option_items(self):
+        structured_items = self.option_items.order_by('order', 'id')
+        if structured_items.exists():
+            return [
+                {
+                    'label': item.label,
+                    'image_url': item.image.url if item.image else '',
+                }
+                for item in structured_items
+            ]
+
+        options = [option.strip() for option in (self.choices or '').splitlines() if option.strip()]
+        image_urls = [url.strip() for url in (self.choice_images or '').splitlines()]
+        items = []
+
+        for index, option in enumerate(options):
+            image_url = image_urls[index] if index < len(image_urls) else ''
+            items.append({
+                'label': option,
+                'image_url': image_url,
+            })
+
+        return items
+
     def __str__(self):
         return (self.text[:75] + '...') if len(self.text) > 75 else self.text
 
     class Meta:
         verbose_name = _('Question')
         verbose_name_plural = _('Questions')
+
+
+class QuestionOption(models.Model):
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='option_items')
+    label = models.CharField(max_length=255)
+    image = models.FileField(upload_to='question_option_images/', blank=True)
+    order = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return self.label
+
+    class Meta:
+        ordering = ['order', 'id']
+        verbose_name = _('Question option')
+        verbose_name_plural = _('Question options')
 
 
 class Response(models.Model):

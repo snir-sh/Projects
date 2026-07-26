@@ -8,7 +8,7 @@ from django.shortcuts import render
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 from django.templatetags.static import static
-from .models import Survey, Question, Response, Answer
+from .models import Survey, Question, QuestionOption, Response, Answer
 from django.contrib.auth.models import Group
 from django.conf import settings
 import json
@@ -125,6 +125,26 @@ class QuestionInline(admin.TabularInline):
     readonly_fields = ('is_common',)
 
 
+class QuestionOptionInline(admin.TabularInline):
+    model = QuestionOption
+    extra = 1
+    fields = ('label', 'image', 'image_preview', 'order')
+    readonly_fields = ('image_preview',)
+
+    def image_preview(self, obj):
+        if not obj.pk or not obj.image:
+            return '-'
+        return format_html(
+            '<a href="{}" target="_blank" rel="noopener noreferrer">'
+            '<img src="{}" alt="{}" style="max-width: 80px; max-height: 80px; border-radius: 6px;" />'
+            '</a>',
+            obj.image.url,
+            obj.image.url,
+            obj.label,
+        )
+    image_preview.short_description = _('Preview')
+
+
 @admin.register(Survey)
 class SurveyAdmin(admin.ModelAdmin):
     list_display = ('title', 'created_at', 'results_link')
@@ -144,8 +164,9 @@ class SurveyAdmin(admin.ModelAdmin):
 class QuestionAdmin(admin.ModelAdmin):
     # Show Survey first in the changelist and in the form
     list_display = ('survey', 'text', 'question_type', 'required', 'is_common')
-    fields = ('survey', 'text', 'question_type', 'choices', 'max_selections', 'multi_text_count', 'required', 'groups')
+    fields = ('survey', 'text', 'question_type', 'choices', 'choice_images', 'max_selections', 'multi_text_count', 'required', 'groups')
     filter_horizontal = ('groups',)
+    inlines = [QuestionOptionInline]
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         # Provide clearer help text so admins understand selection semantics

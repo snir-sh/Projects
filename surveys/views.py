@@ -163,12 +163,14 @@ def add_question(request, survey_id):
             error = 'Question text is required.'
         else:
             choices_text = request.POST.get('choices', '').strip()
+            choice_images_text = request.POST.get('choice_images', '').strip()
             max_sel = int(request.POST.get('max_selections') or 3)
             multi_count = int(request.POST.get('multi_text_count') or 3)
             q = Question.objects.create(
                 text=text,
                 question_type=qtype,
                 choices=choices_text,
+                choice_images=choice_images_text,
                 max_selections=max_sel,
                 multi_text_count=multi_count,
                 required=required,
@@ -295,7 +297,8 @@ def take_survey(request, survey_id):
     # Prepare question structures for the template
     questions = []
     for q in qs:
-        opts = [o for o in (q.choices or '').splitlines() if o.strip()]
+        option_items = q.get_option_items()
+        opts = [item['label'] for item in option_items]
         indices = list(range(1, q.multi_text_count + 1))
         
         # Load existing answer if resuming a draft
@@ -326,6 +329,7 @@ def take_survey(request, survey_id):
             'type': q.question_type,
             'required': q.required,
             'options': opts,
+            'option_items': option_items,
             'max_selections': q.max_selections,
             'multi_text_count': q.multi_text_count,
             'multi_text_indices': indices,
@@ -395,14 +399,13 @@ def survey_results(request, survey_id):
             elif question.question_type == Question.MULTI_SELECT:
                 # Get all multi-select answers with weighted scoring
                 answers = Answer.objects.filter(question=question, response__survey=survey)
-                option_scores = {}  # Changed from option_counts to option_scores
-                
+                option_scores = {}
+                option_items = question.get_option_items()
+                 
                 # Initialize with all options
-                for option in question.choices.split('\n'):
-                    option = option.strip()
-                    if option:
-                        option_scores[option] = 0
-                
+                for item in option_items:
+                    option_scores[item['label']] = 0
+                 
                 # Calculate weighted scores based on selection order
                 # Logic: if 3 selections -> 3,2,1 points; if 1-2 selections -> all get 1 point
                 for answer in answers:
@@ -422,11 +425,13 @@ def survey_results(request, survey_id):
                                 option_scores[option] = option_scores.get(option, 0) + points
                         except (json.JSONDecodeError, ValueError):
                             pass
-                
+                 
                 q_data['results'] = []
+                option_image_map = {item['label']: item['image_url'] for item in option_items}
                 for option, score in option_scores.items():
                     q_data['results'].append({
                         'option': option,
+                        'image_url': option_image_map.get(option, ''),
                         'score': score,
                     })
             
