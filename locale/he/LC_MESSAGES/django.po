@@ -8,7 +8,7 @@ msgid "Survey"
 msgstr "סקר"
 
 msgid "Surveys"
-msgstr "סיכום"
+msgstr "סקרים"
 
 msgid "Question"
 msgstr "שאלה"
@@ -20,7 +20,7 @@ msgid "Response"
 msgstr "תגובה"
 
 msgid "Responses"
-msgstr "תגובות"
+msgstr "סטטוס"
 
 msgid "Answer"
 msgstr "תשובה"
