@@ -45,8 +45,14 @@
             </div>
           {% elif q.type == 'multi_text' %}
             <div class="field-box">
+              <div style="font-size: 12px; color: #666; margin-bottom: 10px; padding: 8px; background: #f0f0f0; border-radius: 4px;">
+                <strong>💡 {% trans "Scoring" %}</strong>: {% trans "3 answers" %} = 3,2,1 {% trans "points" %} | {% trans "2 answers" %} = 1,1 {% trans "points" %} | {% trans "1 answer" %} = 1 {% trans "point" %}
+              </div>
               {% for item in q.multi_text_values %}
-                <div><input type="text" name="question_{{ q.id }}_{{ item.index }}" class="vTextField" style="width:60%" value="{{ item.value }}"></div>
+                <div style="margin-bottom: 8px;">
+                  <input type="text" name="question_{{ q.id }}_{{ item.index }}" class="vTextField multi-text-input" data-question-id="question_{{ q.id }}" style="width:60%" value="{{ item.value }}">
+                  <span class="point-value multi-text-point"></span>
+                </div>
               {% endfor %}
             </div>
           {% endif %}
@@ -95,6 +101,28 @@
         orderInput.value = JSON.stringify(orderedChecked);
       }
     }
+
+    function updateMultiTextScoreDisplay(inputs) {
+      const filledInputs = inputs.filter(input => input.value.trim() !== '');
+
+      inputs.forEach(input => {
+        const scoreSpan = input.parentElement.querySelector('.multi-text-point');
+
+        if (!scoreSpan) {
+          return;
+        }
+
+        if (input.value.trim() !== '') {
+          const position = filledInputs.indexOf(input) + 1;
+          const points = getPointsForPosition(filledInputs.length, position);
+          scoreSpan.textContent = ` (${points} pt${points !== 1 ? 's' : ''})`;
+          scoreSpan.style.color = '#417690';
+          scoreSpan.style.fontWeight = 'bold';
+        } else {
+          scoreSpan.textContent = '';
+        }
+      });
+    }
       
     function updateScoreDisplay(checkboxes, questionId, selectionOrder) {
       const orderedChecked = getOrderedCheckedValues(checkboxes, selectionOrder);
@@ -119,6 +147,7 @@
     document.addEventListener('DOMContentLoaded', function() {
       const form = document.querySelector('.survey-form');
       const checkboxGroups = {};
+      const multiTextGroups = {};
       const selectionOrderByQuestion = {};
 
       form.querySelectorAll('.multi-select-checkbox').forEach(checkbox => {
@@ -127,6 +156,14 @@
           checkboxGroups[questionId] = [];
         }
         checkboxGroups[questionId].push(checkbox);
+      });
+
+      form.querySelectorAll('.multi-text-input').forEach(input => {
+        const questionId = input.dataset.questionId;
+        if (!multiTextGroups[questionId]) {
+          multiTextGroups[questionId] = [];
+        }
+        multiTextGroups[questionId].push(input);
       });
 
       Object.keys(checkboxGroups).forEach(questionId => {
@@ -199,6 +236,17 @@
         updateScoreDisplay(checkboxes, questionId, selectionOrder);
       });
 
+      Object.keys(multiTextGroups).forEach(questionId => {
+        const inputs = multiTextGroups[questionId];
+        updateMultiTextScoreDisplay(inputs);
+
+        inputs.forEach(input => {
+          input.addEventListener('input', function() {
+            updateMultiTextScoreDisplay(inputs);
+          });
+        });
+      });
+
       form.querySelectorAll('.clear-question-button').forEach(button => {
         button.addEventListener('click', function() {
           const questionId = button.dataset.questionId;
@@ -220,9 +268,11 @@
           }
 
           if (questionType === 'multi_text') {
-            form.querySelectorAll(`input[name^="${questionId}_"]`).forEach(input => {
+            const inputs = multiTextGroups[questionId] || [];
+            inputs.forEach(input => {
               input.value = '';
             });
+            updateMultiTextScoreDisplay(inputs);
             return;
           }
 

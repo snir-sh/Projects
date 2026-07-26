@@ -436,16 +436,23 @@ def survey_results(request, survey_id):
                 q_data['results'] = [{'text': a} for a in answers if a]
             
             elif question.question_type == Question.MULTI_TEXT:
-                # Get all multi-text answers
+                # Get all multi-text answers with weighted scoring by answer order.
                 answers = Answer.objects.filter(question=question, response__survey=survey).values_list('answer_text', flat=True)
                 q_data['results'] = []
                 for answer in answers:
                     if answer:
                         try:
                             texts = json.loads(answer)
-                            q_data['results'].extend([{'text': t} for t in texts if t])
+                            filled_texts = [t for t in texts if t]
+                            total_filled = len(filled_texts)
+                            for position, text in enumerate(filled_texts):
+                                if total_filled == 3:
+                                    points = 3 - position
+                                else:
+                                    points = 1
+                                q_data['results'].append({'text': text, 'score': points})
                         except (json.JSONDecodeError, ValueError):
-                            q_data['results'].append({'text': answer})
+                            q_data['results'].append({'text': answer, 'score': 1})
             
             questions_data.append(q_data)
     

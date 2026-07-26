@@ -102,8 +102,19 @@
                 {% elif q_data.type == 'text' or q_data.type == 'multi_text' %}
                     <!-- Text responses list -->
                     <div class="text-responses">
+                        {% if q_data.type == 'multi_text' %}
+                            <div style="font-size: 12px; color: #666; margin-bottom: 10px; padding: 8px; background: #f0f0f0; border-radius: 4px;">
+                                <strong>📌 {% trans "Scoring System" %}</strong>:<br>
+                                • 3 answers: 3, 2, 1 points | 2 answers: 1, 1 points | 1 answer: 1 point
+                            </div>
+                        {% endif %}
                         {% for result in q_data.results %}
-                            <div class="text-response">{{ result.text }}</div>
+                            <div class="text-response">
+                                {{ result.text }}
+                                {% if q_data.type == 'multi_text' and result.score %}
+                                    <span style="float: left; color: #666; font-weight: bold;">{{ result.score }} {% trans "points" %}</span>
+                                {% endif %}
+                            </div>
                         {% empty %}
                             <p style="color: #999;">{% trans "No responses" %}</p>
                         {% endfor %}
