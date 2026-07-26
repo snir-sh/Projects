@@ -207,24 +207,15 @@ def admin_user_surveys(request):
     # Add completion status for each survey
     survey_list = []
     for survey in surveys:
-        # Check if user has completed this survey
-        completed = Response.objects.filter(
+        latest_response = Response.objects.filter(
             survey=survey,
             user_identifier=user.username,
-            status=Response.COMPLETED
-        ).exists()
-        
-        # Check if user has a draft
-        draft = Response.objects.filter(
-            survey=survey,
-            user_identifier=user.username,
-            status=Response.DRAFT
-        ).first()
+        ).order_by('-updated_at', '-submitted_at', '-id').first()
         
         survey_list.append({
             'survey': survey,
-            'completed': completed,
-            'draft': draft,
+            'completed': latest_response.status == Response.COMPLETED if latest_response else False,
+            'draft': latest_response if latest_response and latest_response.status == Response.DRAFT else None,
         })
     
     return render(request, 'surveys/admin_user_surveys.html', {'survey_list': survey_list})
@@ -239,12 +230,11 @@ def take_survey(request, survey_id):
     user_group_ids = list(user.groups.values_list('id', flat=True))
     qs = Question.objects.filter(Q(survey=survey)).filter(Q(groups__isnull=True) | Q(groups__in=user_group_ids)).distinct()
     
-    # Get or create draft response for this survey
+    # Load the latest response so users can review/edit their latest submitted answers too.
     resp = Response.objects.filter(
         survey=survey,
         user_identifier=user.username,
-        status=Response.DRAFT
-    ).first()
+    ).order_by('-updated_at', '-submitted_at', '-id').first()
     
     if request.method == 'POST':
         # Create or update response
@@ -263,6 +253,18 @@ def take_survey(request, survey_id):
             elif q.question_type == Question.MULTI_SELECT:
                 key = f'question_{q.id}'
                 vals = request.POST.getlist(key)
+                ordered_vals = []
+                raw_order = request.POST.get(f'{key}__order', '').strip()
+                if raw_order:
+                    try:
+                        parsed_order = json.loads(raw_order)
+                        if isinstance(parsed_order, list):
+                            ordered_vals = [value for value in parsed_order if value in vals]
+                    except (TypeError, ValueError):
+                        ordered_vals = []
+
+                if ordered_vals:
+                    vals = ordered_vals + [value for value in vals if value not in ordered_vals]
                 try:
                     vals = vals[:int(q.max_selections)]
                 except Exception:
@@ -285,7 +287,8 @@ def take_survey(request, survey_id):
             messages.success(request, _('Survey submitted successfully!'))
             return render(request, 'surveys/take_survey_submitted.html', {'survey': survey})
         else:
-            # Auto-save draft
+            resp.status = Response.DRAFT
+            resp.save()
             messages.info(request, _('Survey draft saved.'))
             return redirect('take_survey', survey_id=survey_id)
 
@@ -300,6 +303,23 @@ def take_survey(request, survey_id):
         if resp:
             existing_answer = resp.answers.filter(question=q).first()
         
+        existing_multi_text_answers = []
+        if existing_answer and q.question_type == Question.MULTI_TEXT:
+            try:
+                parsed_existing_answer = json.loads(existing_answer.answer_text)
+                if isinstance(parsed_existing_answer, list):
+                    existing_multi_text_answers = parsed_existing_answer
+            except (TypeError, ValueError):
+                existing_multi_text_answers = []
+
+        multi_text_values = [
+            {
+                'index': idx,
+                'value': existing_multi_text_answers[idx - 1] if idx - 1 < len(existing_multi_text_answers) else '',
+            }
+            for idx in indices
+        ]
+
         questions.append({
             'id': q.id,
             'text': q.text,
@@ -309,13 +329,15 @@ def take_survey(request, survey_id):
             'max_selections': q.max_selections,
             'multi_text_count': q.multi_text_count,
             'multi_text_indices': indices,
+            'multi_text_values': multi_text_values,
             'existing_answer': existing_answer.answer_text if existing_answer else None,
+            'existing_multi_text_answers': existing_multi_text_answers,
         })
     
     return render(request, 'surveys/take_survey.html', {
         'survey': survey,
         'questions': questions,
-        'is_draft': resp is not None,
+        'is_draft': resp is not None and resp.status == Response.DRAFT,
     })
 
 
