@@ -1,5 +1,63 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% block extra_css %}
+  <style>
+    .option-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .option-card {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: #fafafa;
+      padding: 12px;
+      height: 100%;
+      box-sizing: border-box;
+    }
+
+    .option-card label {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 0;
+      cursor: pointer;
+      font-weight: normal;
+    }
+
+    .option-card input[type="radio"],
+    .option-card input[type="checkbox"] {
+      width: auto;
+      margin: 0;
+    }
+
+    .option-thumb {
+      max-width: 90px;
+      max-height: 90px;
+      object-fit: cover;
+      display: block;
+      border-radius: 6px;
+    }
+
+    .option-label-text {
+      font-weight: bold;
+    }
+
+    @media (max-width: 900px) {
+      .option-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 520px) {
+      .option-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+{% endblock %}
 {% block content %}
   <div class="module">
     <h1>{{ survey.title }}</h1>
@@ -20,13 +78,21 @@
             <div class="field-box"><input type="text" name="question_{{ q.id }}" class="vTextField" style="width:60%" value="{{ q.existing_answer|default:'' }}"></div>
           {% elif q.type == 'choice' %}
             <div class="field-box">
-              {% for opt in q.options %}
-                <div class="radiolist">
+              <div class="option-grid">
+              {% for opt in q.option_items %}
+                <div class="radiolist option-card">
                   <label>
-                    <input type="radio" name="question_{{ q.id }}" value="{{ opt|escape }}" {% if q.existing_answer == opt %}checked{% endif %}> {{ opt }}
+                    <input type="radio" name="question_{{ q.id }}" value="{{ opt.label|escape }}" {% if q.existing_answer == opt.label %}checked{% endif %}>
+                    {% if opt.image_url %}
+                      <a href="{{ opt.image_url }}" target="_blank" rel="noopener noreferrer">
+                        <img src="{{ opt.image_url }}" alt="{{ opt.label }}" class="option-thumb">
+                      </a>
+                    {% endif %}
+                    <span class="option-label-text">{{ opt.label }}</span>
                   </label>
                 </div>
               {% endfor %}
+              </div>
             </div>
           {% elif q.type == 'multi_select' %}
             <div class="field-box">
@@ -35,19 +101,22 @@
               <div style="font-size: 12px; color: #666; margin-bottom: 10px; padding: 8px; background: #f0f0f0; border-radius: 4px;">
                 <strong>💡 {% trans "Scoring" %}</strong>: {% trans "3 selections" %} = 3,2,1 {% trans "points" %} | {% trans "2 selections" %} = 1,1 {% trans "points" %} | {% trans "1 selection" %} = 1 {% trans "point" %}
               </div>
+              <div class="option-grid">
               {% for opt in q.option_items %}
-                <div class="checkbox">
+                <div class="checkbox option-card">
                   <label>
                     <input type="checkbox" name="question_{{ q.id }}" value="{{ opt.label|escape }}" data-existing="{{ q.existing_answer|default:'' }}" class="multi-select-checkbox">
                     {% if opt.image_url %}
                       <a href="{{ opt.image_url }}" target="_blank" rel="noopener noreferrer">
-                        <img src="{{ opt.image_url }}" alt="{{ opt.label }}" style="max-width: 90px; max-height: 90px; object-fit: cover; display: block; margin: 8px 0; border-radius: 6px;">
+                        <img src="{{ opt.image_url }}" alt="{{ opt.label }}" class="option-thumb">
                       </a>
                     {% endif %}
-                    {{ opt.label }} <span class="point-value"></span>
+                    <span class="option-label-text">{{ opt.label }}</span>
+                    <span class="point-value"></span>
                   </label>
                 </div>
               {% endfor %}
+              </div>
             </div>
           {% elif q.type == 'multi_text' %}
             <div class="field-box">

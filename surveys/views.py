@@ -375,23 +375,24 @@ def survey_results(request, survey_id):
                 # Get all answers for this choice question
                 answers = Answer.objects.filter(question=question, response__survey=survey)
                 choice_counts = {}
-                
+                option_items = question.get_option_items()
+                 
                 # Initialize with all options
-                for option in question.choices.split('\n'):
-                    option = option.strip()
-                    if option:
-                        choice_counts[option] = 0
-                
+                for item in option_items:
+                    choice_counts[item['label']] = 0
+                 
                 # Count answers
                 for answer in answers:
                     if answer.answer_text:
                         choice_counts[answer.answer_text] = choice_counts.get(answer.answer_text, 0) + 1
-                
+                 
                 q_data['results'] = []
+                option_image_map = {item['label']: item['image_url'] for item in option_items}
                 for option, count in choice_counts.items():
                     percentage = (count / total_responses * 100) if total_responses > 0 else 0
                     q_data['results'].append({
                         'option': option,
+                        'image_url': option_image_map.get(option, ''),
                         'count': count,
                         'percentage': round(percentage, 1),
                     })

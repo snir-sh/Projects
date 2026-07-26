@@ -20,10 +20,11 @@
         .question-type { display: inline-block; background: #e3f2fd; color: #1976d2; padding: 4px 12px; border-radius: 3px; font-size: 12px; margin-bottom: 15px; }
         
         /* Choice/Multi-select results */
-        .option-row { margin-bottom: 15px; }
-        .option-label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .option-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+        .option-row { border: 1px solid #ddd; border-radius: 8px; background: #fafafa; padding: 12px; box-sizing: border-box; }
+        .option-label { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; margin-bottom: 5px; }
         .option-name { font-weight: 500; flex: 1; }
-        .option-stats { color: #666; font-size: 14px; }
+        .option-stats { color: #666; font-size: 14px; font-weight: bold; }
         .progress-bar { background: #e0e0e0; height: 20px; border-radius: 3px; overflow: hidden; }
         .progress-fill { background: #4caf50; height: 100%; display: flex; align-items: center; justify-content: flex-end; padding-right: 5px; color: white; font-size: 12px; font-weight: bold; }
         .option-image { max-width: 90px; max-height: 90px; object-fit: cover; border-radius: 6px; margin: 8px 0; display: block; }
@@ -35,6 +36,14 @@
         .back-link { margin-bottom: 20px; }
         .back-link a { color: #1976d2; text-decoration: none; }
         .back-link a:hover { text-decoration: underline; }
+
+        @media (max-width: 900px) {
+            .option-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+
+        @media (max-width: 520px) {
+            .option-grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
@@ -71,10 +80,18 @@
                     <!-- Progress bar results -->
                     {% if q_data.type == 'choice' %}
                         <!-- Choice question: show counts & percentages -->
+                        <div class="option-grid">
                         {% for result in q_data.results %}
                             <div class="option-row">
                                 <div class="option-label">
-                                    <span class="option-name">{{ result.option }}</span>
+                                    <span class="option-name">
+                                        {% if result.image_url %}
+                                            <a href="{{ result.image_url }}" target="_blank" rel="noopener noreferrer">
+                                                <img src="{{ result.image_url }}" alt="{{ result.option }}" class="option-image">
+                                            </a>
+                                        {% endif %}
+                                        {{ result.option }}
+                                    </span>
                                     <span class="option-stats">{{ result.count }} ({{ result.percentage }}%)</span>
                                 </div>
                                 <div class="progress-bar">
@@ -84,12 +101,14 @@
                                 </div>
                             </div>
                         {% endfor %}
+                        </div>
                     {% else %}
                         <!-- Multi-select: show weighted points (3,2,1 for 3 selections; 1,1 for 2 selections; 1 for 1 selection) -->
                         <div style="font-size: 12px; color: #666; margin-bottom: 10px; padding: 8px; background: #f0f0f0; border-radius: 4px;">
                             <strong>📌 {% trans "Scoring System" %}</strong>:<br>
                             • 3 selections: 3, 2, 1 points | 2 selections: 1, 1 points | 1 selection: 1 point
                         </div>
+                        <div class="option-grid">
                         {% for result in q_data.results %}
                             <div class="option-row">
                                 <div class="option-label">
@@ -105,6 +124,7 @@
                                 </div>
                             </div>
                         {% endfor %}
+                        </div>
                     {% endif %}
                 
                 {% elif q_data.type == 'text' or q_data.type == 'multi_text' %}

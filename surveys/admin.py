@@ -185,9 +185,12 @@ class SurveyAdmin(admin.ModelAdmin):
 class QuestionAdmin(admin.ModelAdmin):
     # Show Survey first in the changelist and in the form
     list_display = ('survey', 'text', 'question_type', 'required', 'is_common')
-    fields = ('survey', 'text', 'question_type', 'choices', 'choice_images', 'max_selections', 'multi_text_count', 'required', 'groups')
+    fields = ('survey', 'text', 'question_type', 'choices', 'max_selections', 'multi_text_count', 'required', 'groups')
     filter_horizontal = ('groups',)
     inlines = [QuestionOptionInline]
+
+    class Media:
+        js = ('surveys/admin/question_type_toggle.js',)
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         # Provide clearer help text so admins understand selection semantics
