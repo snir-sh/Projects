@@ -72,7 +72,7 @@
   <div class="submit-row" style="margin-top: 20px;">
     <button type="submit" form="survey-form" name="save" class="default" title="{% trans 'Save your responses as a draft and continue later' %}">{% trans "Save Draft" %}</button>
     <button type="submit" form="survey-form" name="submit" class="default" style="background-color: #417690;">{% trans "Submit" %}</button>
-    <a class="button" href="{% url 'admin_user_surveys' %}">{% trans "Back" %}</a>
+    <a class="button" href="{% url 'admin_user_surveys' %}" style="display: inline-block; padding: 10px 20px; background-color: #417690; color: white; border-radius: 4px; text-decoration: none;">{% trans "Back" %}</a>
   </div>
   <script>
     const pointsMap = {

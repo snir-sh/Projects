@@ -16,6 +16,27 @@ import csv
 
 User = get_user_model()
 
+_original_get_app_list = admin.AdminSite.get_app_list
+
+
+def _ordered_get_app_list(self, request, app_label=None):
+    app_list = _original_get_app_list(self, request, app_label=app_label)
+    model_order = {
+        'Survey': 0,
+        'Question': 1,
+        'Answer': 2,
+        'Response': 99,
+    }
+
+    for app in app_list:
+        if app.get('app_label') == 'surveys':
+            app['models'].sort(key=lambda model: (model_order.get(model.get('object_name'), 50), model.get('name', '')))
+
+    return app_list
+
+
+admin.AdminSite.get_app_list = _ordered_get_app_list
+
 # Override User.__str__ to display just username in raw_id_fields
 User.__str__ = lambda self: self.username
 
