@@ -1,0 +1,148 @@
+# Hebrew translations for survey system
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: he\n"
+
+msgid "Survey"
+msgstr "סקר"
+
+msgid "Surveys"
+msgstr "סקרים"
+
+msgid "Question"
+msgstr "שאלה"
+
+msgid "Questions"
+msgstr "שאלות"
+
+msgid "Response"
+msgstr "תגובה"
+
+msgid "Responses"
+msgstr "סטטוס"
+
+msgid "Answer"
+msgstr "תשובה"
+
+msgid "Answers"
+msgstr "תשובות"
+
+msgid "Surveys assigned to you"
+msgstr "סקרים שהוקצו לך"
+
+msgid "Status"
+msgstr "סטטוס"
+
+msgid "Action"
+msgstr "פעולה"
+
+msgid "Completed"
+msgstr "הושלם"
+
+msgid "Draft in progress"
+msgstr "טיוטה בתהליך"
+
+msgid "New"
+msgstr "חדש"
+
+msgid "View/Edit"
+msgstr "צפייה/עריכה"
+
+msgid "Resume"
+msgstr "חזור להמשך"
+
+msgid "Start"
+msgstr "התחל"
+
+msgid "No surveys available for your group."
+msgstr "אין סקרים זמינים לקבוצה שלך."
+
+msgid "Log out"
+msgstr "התנתקות"
+
+msgid "Resuming draft"
+msgstr "חזרה לטיוטה"
+
+msgid "Your previous responses have been loaded. Save or submit when ready."
+msgstr "התשובות הקודמות שלך נטענו. שמור או הגש כשאתה מוכן."
+
+msgid "Save your responses as a draft and continue later"
+msgstr "שמור את התשובות שלך כטיוטה וחזור מאוחר יותר"
+
+msgid "Save Draft"
+msgstr "שמור טיוטה"
+
+msgid "Submit"
+msgstr "הגש"
+
+msgid "Back"
+msgstr "חזור"
+
+msgid "Select up to %(counter)s option."
+msgid_plural "Select up to %(counter)s options."
+msgstr[0] "בחר עד %(counter)s אפשרות."
+msgstr[1] "בחר עד %(counter)s אפשרויות."
+
+msgid "Thank you"
+msgstr "תודה"
+
+msgid "Your responses for \"%(title)s\" have been submitted."
+msgstr "התשובות שלך עבור \"%(title)s\" הוגשו."
+
+msgid "Back to surveys"
+msgstr "חזור לסקרים"
+
+msgid "Results"
+msgstr "תוצאות"
+
+msgid "View Results"
+msgstr "צפה בתוצאות"
+
+msgid "Back to Surveys"
+msgstr "חזור לסקרים"
+
+msgid "Total Responses"
+msgstr "סך הכל תגובות"
+
+msgid "Choice"
+msgstr "בחירה"
+
+msgid "Multi-select"
+msgstr "בחירה מרובה"
+
+msgid "Text"
+msgstr "טקסט"
+
+msgid "Multi-text"
+msgstr "טקסט מרובה"
+
+msgid "No responses"
+msgstr "אין תגובות"
+
+msgid "points"
+msgstr "נקודות"
+
+msgid "Scoring System"
+msgstr "מערכת הניקוד"
+
+msgid "Scoring"
+msgstr "הניקוד"
+
+msgid "3 selections"
+msgstr "3 בחירות"
+
+msgid "2 selections"
+msgstr "2 בחירות"
+
+msgid "1 selection"
+msgstr "1 בחירה"
+
+msgid "point"
+msgstr "נקודה"
+
+msgid "Survey submitted successfully!"
+msgstr "הסקר הוגש בהצלחה!"
+
+msgid "Survey draft saved."
+msgstr "טיוטת הסקר נשמרה."

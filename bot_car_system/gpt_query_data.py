@@ -1,3 +1,4 @@
+import os
 from enums import Role
 from cars_database import CARS
 
@@ -110,4 +111,6 @@ GPT_CONFIG = {
     "temperature": 0.25
 }
 
-TELEGRAM_TOKEN = "8108420818:AAHRvgbi7xEVmjMdcmUQ5zAdqxJEe98qi6Q" 
+TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
+if not TELEGRAM_TOKEN:
+    raise RuntimeError("TELEGRAM_TOKEN environment variable not set. Create a bot at https://t.me/BotFather")

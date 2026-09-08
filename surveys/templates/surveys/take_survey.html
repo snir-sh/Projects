@@ -1,0 +1,367 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block extra_css %}
+  <style>
+    .option-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .option-card {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: #fafafa;
+      padding: 12px;
+      height: 100%;
+      box-sizing: border-box;
+    }
+
+    .option-card label {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 0;
+      cursor: pointer;
+      font-weight: normal;
+    }
+
+    .option-card input[type="radio"],
+    .option-card input[type="checkbox"] {
+      width: auto;
+      margin: 0;
+    }
+
+    .option-thumb {
+      max-width: 90px;
+      max-height: 90px;
+      object-fit: cover;
+      display: block;
+      border-radius: 6px;
+    }
+
+    .option-label-text {
+      font-weight: bold;
+    }
+
+    @media (max-width: 900px) {
+      .option-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 520px) {
+      .option-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+{% endblock %}
+{% block content %}
+  <div class="module">
+    <h1>{{ survey.title }}</h1>
+    <p>{{ survey.description }}</p>
+    {% if is_draft %}
+      <div style="background-color: #FFF8DC; border: 1px solid #DAA520; padding: 10px; margin-bottom: 20px; border-radius: 4px;">
+        <strong>⚠ {% trans "Resuming draft" %}</strong> — {% trans "Your previous responses have been loaded. Save or submit when ready." %}
+      </div>
+    {% endif %}
+    <form method="post" class="survey-form" id="survey-form">
+      {% csrf_token %}
+      {% for q in questions %}
+        <div class="form-row" data-question-row="question_{{ q.id }}">
+          <div class="field-box">
+            <label class="required"><strong>{{ forloop.counter }}. {{ q.text }}</strong></label>
+          </div>
+          {% if q.type == 'text' %}
+            <div class="field-box"><input type="text" name="question_{{ q.id }}" class="vTextField" style="width:60%" value="{{ q.existing_answer|default:'' }}"></div>
+          {% elif q.type == 'choice' %}
+            <div class="field-box">
+              <div class="option-grid">
+              {% for opt in q.option_items %}
+                <div class="radiolist option-card">
+                  <label>
+                    <input type="radio" name="question_{{ q.id }}" value="{{ opt.label|escape }}" {% if q.existing_answer == opt.label %}checked{% endif %}>
+                    {% if opt.image_url %}
+                      <a href="{{ opt.image_url }}" target="_blank" rel="noopener noreferrer">
+                        <img src="{{ opt.image_url }}" alt="{{ opt.label }}" class="option-thumb">
+                      </a>
+                    {% endif %}
+                    <span class="option-label-text">{{ opt.label }}</span>
+                  </label>
+                </div>
+              {% endfor %}
+              </div>
+            </div>
+          {% elif q.type == 'multi_select' %}
+            <div class="field-box">
+              <input type="hidden" name="question_{{ q.id }}__order" value="{{ q.existing_answer|default:'[]' }}" data-order-input-for="question_{{ q.id }}">
+              <div class="help">{% blocktrans count counter=q.max_selections %}Select up to {{ counter }} option.{% plural %}Select up to {{ counter }} options.{% endblocktrans %}</div>
+              <div style="font-size: 12px; color: #666; margin-bottom: 10px; padding: 8px; background: #f0f0f0; border-radius: 4px;">
+                <strong>💡 {% trans "Scoring" %}</strong>: {% trans "3 selections" %} = 3,2,1 {% trans "points" %} | {% trans "2 selections" %} = 1,1 {% trans "points" %} | {% trans "1 selection" %} = 1 {% trans "point" %}
+              </div>
+              <div class="option-grid">
+              {% for opt in q.option_items %}
+                <div class="checkbox option-card">
+                  <label>
+                    <input type="checkbox" name="question_{{ q.id }}" value="{{ opt.label|escape }}" data-existing="{{ q.existing_answer|default:'' }}" class="multi-select-checkbox">
+                    {% if opt.image_url %}
+                      <a href="{{ opt.image_url }}" target="_blank" rel="noopener noreferrer">
+                        <img src="{{ opt.image_url }}" alt="{{ opt.label }}" class="option-thumb">
+                      </a>
+                    {% endif %}
+                    <span class="option-label-text">{{ opt.label }}</span>
+                    <span class="point-value"></span>
+                  </label>
+                </div>
+              {% endfor %}
+              </div>
+            </div>
+          {% elif q.type == 'multi_text' %}
+            <div class="field-box">
+              <div style="font-size: 12px; color: #666; margin-bottom: 10px; padding: 8px; background: #f0f0f0; border-radius: 4px;">
+                <strong>💡 {% trans "Scoring" %}</strong>: {% trans "3 answers" %} = 3,2,1 {% trans "points" %} | {% trans "2 answers" %} = 1,1 {% trans "points" %} | {% trans "1 answer" %} = 1 {% trans "point" %}
+              </div>
+              {% for item in q.multi_text_values %}
+                <div style="margin-bottom: 8px;">
+                  <input type="text" name="question_{{ q.id }}_{{ item.index }}" class="vTextField multi-text-input" data-question-id="question_{{ q.id }}" style="width:60%" value="{{ item.value }}">
+                  <span class="point-value multi-text-point"></span>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+          <div class="field-box" style="margin-top: 10px;">
+            <button type="button" class="button clear-question-button" data-question-id="question_{{ q.id }}" data-question-type="{{ q.type }}" style="font-size: 12px; padding: 4px 10px; background: #f3f3f3; color: #333; border: 1px solid #ccc;">ניקוי</button>
+          </div>
+        </div>
+      {% endfor %}
+    </form>
+  </div>
+  <div class="submit-row" style="margin-top: 20px;">
+    <button type="submit" form="survey-form" name="save" class="default" title="{% trans 'Save your responses as a draft and continue later' %}">{% trans "Save Draft" %}</button>
+    <button type="submit" form="survey-form" name="submit" class="default" style="background-color: #417690;">{% trans "Submit" %}</button>
+    <a class="button" href="{% url 'admin_user_surveys' %}" style="display: inline-block; padding: 10px 20px; background-color: #417690; color: white; border-radius: 4px; text-decoration: none;">{% trans "Back" %}</a>
+  </div>
+  <script>
+    const pointsMap = {
+      1: [1],
+      2: [1, 1],
+      3: [3, 2, 1]
+    };
+     
+    function getPointsForPosition(count, position) {
+      if (pointsMap[count] && pointsMap[count][position - 1]) {
+        return pointsMap[count][position - 1];
+      }
+      return 0;
+    }
+
+    function getOrderedCheckedValues(checkboxes, selectionOrder) {
+      const checkedValues = checkboxes.filter(cb => cb.checked).map(cb => cb.value);
+      const orderedChecked = selectionOrder.filter(value => checkedValues.includes(value));
+
+      checkedValues.forEach(value => {
+        if (!orderedChecked.includes(value)) {
+          orderedChecked.push(value);
+        }
+      });
+
+      return orderedChecked;
+    }
+
+    function syncOrderInput(questionId, orderedChecked) {
+      const orderInput = document.querySelector(`[data-order-input-for="${questionId}"]`);
+      if (orderInput) {
+        orderInput.value = JSON.stringify(orderedChecked);
+      }
+    }
+
+    function updateMultiTextScoreDisplay(inputs) {
+      const filledInputs = inputs.filter(input => input.value.trim() !== '');
+
+      inputs.forEach(input => {
+        const scoreSpan = input.parentElement.querySelector('.multi-text-point');
+
+        if (!scoreSpan) {
+          return;
+        }
+
+        if (input.value.trim() !== '') {
+          const position = filledInputs.indexOf(input) + 1;
+          const points = getPointsForPosition(filledInputs.length, position);
+          scoreSpan.textContent = ` (${points} pt${points !== 1 ? 's' : ''})`;
+          scoreSpan.style.color = '#417690';
+          scoreSpan.style.fontWeight = 'bold';
+        } else {
+          scoreSpan.textContent = '';
+        }
+      });
+    }
+      
+    function updateScoreDisplay(checkboxes, questionId, selectionOrder) {
+      const orderedChecked = getOrderedCheckedValues(checkboxes, selectionOrder);
+
+      checkboxes.forEach(checkbox => {
+        let scoreSpan = checkbox.parentElement.querySelector('.point-value');
+          
+        if (checkbox.checked) {
+          const position = orderedChecked.indexOf(checkbox.value) + 1;
+          const points = getPointsForPosition(orderedChecked.length, position);
+          scoreSpan.textContent = ` (${points} pt${points !== 1 ? 's' : ''})`;
+          scoreSpan.style.color = '#417690';
+          scoreSpan.style.fontWeight = 'bold';
+        } else {
+          scoreSpan.textContent = '';
+        }
+      });
+
+      syncOrderInput(questionId, orderedChecked);
+    }
+      
+    document.addEventListener('DOMContentLoaded', function() {
+      const form = document.querySelector('.survey-form');
+      const checkboxGroups = {};
+      const multiTextGroups = {};
+      const selectionOrderByQuestion = {};
+
+      form.querySelectorAll('.multi-select-checkbox').forEach(checkbox => {
+        const questionId = checkbox.name;
+        if (!checkboxGroups[questionId]) {
+          checkboxGroups[questionId] = [];
+        }
+        checkboxGroups[questionId].push(checkbox);
+      });
+
+      form.querySelectorAll('.multi-text-input').forEach(input => {
+        const questionId = input.dataset.questionId;
+        if (!multiTextGroups[questionId]) {
+          multiTextGroups[questionId] = [];
+        }
+        multiTextGroups[questionId].push(input);
+      });
+
+      Object.keys(checkboxGroups).forEach(questionId => {
+        const checkboxes = checkboxGroups[questionId];
+        let selectionOrder = [];
+
+        const existing = checkboxes[0].getAttribute('data-existing');
+        if (existing) {
+          try {
+            const selectedItems = JSON.parse(existing);
+            if (Array.isArray(selectedItems)) {
+              selectionOrder = selectedItems.slice();
+              checkboxes.forEach(checkbox => {
+                checkbox.checked = selectionOrder.includes(checkbox.value);
+              });
+            }
+          } catch (e) {
+            selectionOrder = [];
+          }
+        }
+
+        selectionOrderByQuestion[questionId] = selectionOrder;
+
+        const questionContainer = checkboxes[0].closest('.field-box');
+        if (!questionContainer) {
+          return;
+        }
+
+        const helpElement = questionContainer.querySelector('.help');
+        if (!helpElement) {
+          return;
+        }
+
+        const match = helpElement.textContent.match(/\d+/);
+        if (!match) {
+          return;
+        }
+
+        const maxSelections = parseInt(match[0], 10);
+
+        // Initial score display
+        updateScoreDisplay(checkboxes, questionId, selectionOrder);
+
+        checkboxes.forEach(checkbox => {
+          checkbox.addEventListener('change', function() {
+            if (checkbox.checked) {
+              if (!selectionOrder.includes(checkbox.value)) {
+                selectionOrder.push(checkbox.value);
+              }
+            } else {
+              selectionOrder = selectionOrder.filter(value => value !== checkbox.value);
+            }
+
+            selectionOrderByQuestion[questionId] = selectionOrder;
+
+            const checkedCount = checkboxes.filter(cb => cb.checked).length;
+            checkboxes.forEach(cb => {
+              cb.disabled = checkedCount >= maxSelections && !cb.checked;
+            });
+            updateScoreDisplay(checkboxes, questionId, selectionOrder);
+          });
+        });
+          
+        // Run initial disable check
+        const checkedCount = checkboxes.filter(cb => cb.checked).length;
+        checkboxes.forEach(cb => {
+          cb.disabled = checkedCount >= maxSelections && !cb.checked;
+        });
+
+        updateScoreDisplay(checkboxes, questionId, selectionOrder);
+      });
+
+      Object.keys(multiTextGroups).forEach(questionId => {
+        const inputs = multiTextGroups[questionId];
+        updateMultiTextScoreDisplay(inputs);
+
+        inputs.forEach(input => {
+          input.addEventListener('input', function() {
+            updateMultiTextScoreDisplay(inputs);
+          });
+        });
+      });
+
+      form.querySelectorAll('.clear-question-button').forEach(button => {
+        button.addEventListener('click', function() {
+          const questionId = button.dataset.questionId;
+          const questionType = button.dataset.questionType;
+
+          if (questionType === 'text') {
+            const input = form.querySelector(`input[name="${questionId}"]`);
+            if (input) {
+              input.value = '';
+            }
+            return;
+          }
+
+          if (questionType === 'choice') {
+            form.querySelectorAll(`input[name="${questionId}"]`).forEach(radio => {
+              radio.checked = false;
+            });
+            return;
+          }
+
+          if (questionType === 'multi_text') {
+            const inputs = multiTextGroups[questionId] || [];
+            inputs.forEach(input => {
+              input.value = '';
+            });
+            updateMultiTextScoreDisplay(inputs);
+            return;
+          }
+
+          if (questionType === 'multi_select') {
+            const checkboxes = checkboxGroups[questionId] || [];
+            selectionOrderByQuestion[questionId] = [];
+            checkboxes.forEach(checkbox => {
+              checkbox.checked = false;
+              checkbox.disabled = false;
+            });
+            updateScoreDisplay(checkboxes, questionId, selectionOrderByQuestion[questionId]);
+          }
+        });
+      });
+    });
+  </script>
+{% endblock %}

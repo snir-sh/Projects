@@ -1,0 +1,157 @@
+{% load i18n static %}
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ survey.title }} - {% trans "Results" %}</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'admin/css/base.css' %}">
+    <style>
+        body { font-family: Arial, sans-serif; direction: rtl; }
+        .results-container { max-width: 1000px; margin: 30px auto; padding: 0 20px; }
+        .survey-header { margin-bottom: 30px; border-bottom: 2px solid #ccc; padding-bottom: 20px; }
+        .survey-header h1 { margin: 0; color: #333; font-size: 28px; }
+        .survey-header p { margin: 10px 0 0 0; color: #666; font-size: 14px; }
+        .stats-bar { background: #f5f5f5; padding: 15px; border-radius: 4px; margin-bottom: 20px; }
+        .stats-bar span { font-weight: bold; font-size: 16px; }
+        
+        .question-section { margin-bottom: 40px; background: #fff; border: 1px solid #ddd; padding: 20px; border-radius: 4px; }
+        .question-title { font-size: 18px; font-weight: bold; color: #333; margin-bottom: 20px; }
+        .question-type { display: inline-block; background: #e3f2fd; color: #1976d2; padding: 4px 12px; border-radius: 3px; font-size: 12px; margin-bottom: 15px; }
+        
+        /* Choice/Multi-select results */
+        .option-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+        .option-row { border: 1px solid #ddd; border-radius: 8px; background: #fafafa; padding: 12px; box-sizing: border-box; }
+        .option-label { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; margin-bottom: 5px; }
+        .option-name { font-weight: 500; flex: 1; }
+        .option-stats { color: #666; font-size: 14px; font-weight: bold; }
+        .progress-bar { background: #e0e0e0; height: 20px; border-radius: 3px; overflow: hidden; }
+        .progress-fill { background: #4caf50; height: 100%; display: flex; align-items: center; justify-content: flex-end; padding-right: 5px; color: white; font-size: 12px; font-weight: bold; }
+        .option-image { max-width: 90px; max-height: 90px; object-fit: cover; border-radius: 6px; margin: 8px 0; display: block; }
+        
+        /* Text answers */
+        .text-responses { background: #f9f9f9; padding: 15px; border-radius: 3px; }
+        .text-response { padding: 8px; margin-bottom: 8px; background: white; border-right: 3px solid #4caf50; padding-right: 12px; }
+        
+        .back-link { margin-bottom: 20px; }
+        .back-link a { color: #1976d2; text-decoration: none; }
+        .back-link a:hover { text-decoration: underline; }
+
+        @media (max-width: 900px) {
+            .option-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+
+        @media (max-width: 520px) {
+            .option-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="results-container">
+        <div class="back-link">
+            <a href="/admin/surveys/survey/">← {% trans "Back to Surveys" %}</a>
+        </div>
+        
+        <div class="survey-header">
+            <h1>{{ survey.title }}</h1>
+            <p>{{ survey.description }}</p>
+        </div>
+        
+        <div class="stats-bar">
+            {% trans "Total Responses" %}: <span>{{ total_responses }}</span>
+        </div>
+        
+        {% for q_data in questions_data %}
+            <div class="question-section">
+                <div class="question-type">
+                    {% if q_data.type == 'choice' %}
+                        {% trans "Choice" %}
+                    {% elif q_data.type == 'multi_select' %}
+                        {% trans "Multi-select" %}
+                    {% elif q_data.type == 'text' %}
+                        {% trans "Text" %}
+                    {% elif q_data.type == 'multi_text' %}
+                        {% trans "Multi-text" %}
+                    {% endif %}
+                </div>
+                <div class="question-title">{{ q_data.text }}</div>
+                
+                {% if q_data.type == 'choice' or q_data.type == 'multi_select' %}
+                    <!-- Progress bar results -->
+                    {% if q_data.type == 'choice' %}
+                        <!-- Choice question: show counts & percentages -->
+                        <div class="option-grid">
+                        {% for result in q_data.results %}
+                            <div class="option-row">
+                                <div class="option-label">
+                                    <span class="option-name">
+                                        {% if result.image_url %}
+                                            <a href="{{ result.image_url }}" target="_blank" rel="noopener noreferrer">
+                                                <img src="{{ result.image_url }}" alt="{{ result.option }}" class="option-image">
+                                            </a>
+                                        {% endif %}
+                                        {{ result.option }}
+                                    </span>
+                                    <span class="option-stats">{{ result.count }} ({{ result.percentage }}%)</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: {{ result.percentage }}%">
+                                        {% if result.percentage > 10 %}{{ result.percentage }}%{% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                        </div>
+                    {% else %}
+                        <!-- Multi-select: show weighted points (3,2,1 for 3 selections; 1,1 for 2 selections; 1 for 1 selection) -->
+                        <div style="font-size: 12px; color: #666; margin-bottom: 10px; padding: 8px; background: #f0f0f0; border-radius: 4px;">
+                            <strong>📌 {% trans "Scoring System" %}</strong>:<br>
+                            • 3 selections: 3, 2, 1 points | 2 selections: 1, 1 points | 1 selection: 1 point
+                        </div>
+                        <div class="option-grid">
+                        {% for result in q_data.results %}
+                            <div class="option-row">
+                                <div class="option-label">
+                                    <span class="option-name">
+                                        {% if result.image_url %}
+                                            <a href="{{ result.image_url }}" target="_blank" rel="noopener noreferrer">
+                                                <img src="{{ result.image_url }}" alt="{{ result.option }}" class="option-image">
+                                            </a>
+                                        {% endif %}
+                                        {{ result.option }}
+                                    </span>
+                                    <span class="option-stats"><strong>{{ result.score }}</strong> {% trans "points" %}</span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                        </div>
+                    {% endif %}
+                
+                {% elif q_data.type == 'text' or q_data.type == 'multi_text' %}
+                    <!-- Text responses list -->
+                    <div class="text-responses">
+                        {% if q_data.type == 'multi_text' %}
+                            <div style="font-size: 12px; color: #666; margin-bottom: 10px; padding: 8px; background: #f0f0f0; border-radius: 4px;">
+                                <strong>📌 {% trans "Scoring System" %}</strong>:<br>
+                                • 3 answers: 3, 2, 1 points | 2 answers: 1, 1 points | 1 answer: 1 point
+                            </div>
+                        {% endif %}
+                        {% for result in q_data.results %}
+                            <div class="text-response">
+                                {{ result.text }}
+                                {% if q_data.type == 'multi_text' and result.score %}
+                                    <span style="float: left; color: #666; font-weight: bold;">{{ result.score }} {% trans "points" %}</span>
+                                {% endif %}
+                            </div>
+                        {% empty %}
+                            <p style="color: #999;">{% trans "No responses" %}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        {% empty %}
+            <p style="text-align: center; color: #999; padding: 40px;">{% trans "No questions in this survey" %}</p>
+        {% endfor %}
+    </div>
+</body>
+</html>

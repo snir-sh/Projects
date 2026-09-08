@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240">
+  <rect width="240" height="240" rx="24" fill="#d8dde3"/>
+  <text x="120" y="110" text-anchor="middle" font-size="88">🐘</text>
+  <text x="120" y="180" text-anchor="middle" font-size="28" font-family="Arial, sans-serif" fill="#39434d">Elephant</text>
+</svg>

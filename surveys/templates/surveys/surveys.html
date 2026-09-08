@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head><meta charset="utf-8"><title>Manage Surveys</title></head>
+  <body style="direction: rtl; text-align: right;">
+    <h1>Surveys</h1>
+    <form method="post">
+      {% csrf_token %}
+      <label>Title: <input type="text" name="title" required></label>
+      <div><label>Description:<br><textarea name="description" rows="3" cols="60"></textarea></label></div>
+      <div style="margin-top:8px">
+        <button type="submit" name="_save">Save and exit</button>
+        <button type="submit" name="_addanother">Save and add another</button>
+      </div>
+    </form>
+
+    <h2>Existing Surveys</h2>
+    <ul>
+      {% for s in surveys %}
+        <li>{{ s.title }} — <a href="{% url 'add_question' s.id %}">Add question</a></li>
+      {% empty %}
+        <li>No surveys yet</li>
+      {% endfor %}
+    </ul>
+
+    <p><a href="/">Back</a></p>
+  </body>
+</html>
