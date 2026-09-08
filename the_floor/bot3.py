@@ -7,7 +7,12 @@ from discord.ext import commands
 
 from generate_image import generate_grid_png
 
-TOKEN = "MTQ3NTQ4MjkzODk1Mzk2MTcwMg.GT2Lba.U-d7WFsPx3UgYaxca-9xwP939iy1wJQdGw_Blo"
+# Get Discord token from environment variable
+# To set it locally: export DISCORD_TOKEN="your-token-here"
+# To create a Discord bot token, visit: https://discord.com/developers/applications
+TOKEN = os.getenv("DISCORD_TOKEN")
+if not TOKEN:
+    raise RuntimeError("DISCORD_TOKEN environment variable not set. Create a bot at https://discord.com/developers/applications")
 
 intents = discord.Intents.default()
 bot = commands.Bot(command_prefix="!", intents=intents)

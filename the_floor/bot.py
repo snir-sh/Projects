@@ -10,9 +10,13 @@ from discord.ext import commands
 
 app_id = "1475482938953961702"
 public_key = "06368237dbc5c0c08c3e2e996d69ed90d3f384c8918a951735bae1c79015ce42"
-token = "MTQ3NTQ4MjkzODk1Mzk2MTcwMg.GT2Lba.U-d7WFsPx3UgYaxca-9xwP939iy1wJQdGw_Blo"
 
-# TOKEN = os.getenv("DISCORD_TOKEN")
+# Get Discord token from environment variable
+# To set it locally: export DISCORD_TOKEN="your-token-here"
+# To create a Discord bot token, visit: https://discord.com/developers/applications
+token = os.getenv("DISCORD_TOKEN")
+if not token:
+    raise RuntimeError("DISCORD_TOKEN environment variable not set. Create a bot at https://discord.com/developers/applications")
 
 intents = discord.Intents.default()
 # If you later need full member lists, enable members intent in dev portal + here:
