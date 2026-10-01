@@ -10,7 +10,7 @@ from discord.ext import commands
 
 app_id = "1475482938953961702"
 public_key = "06368237dbc5c0c08c3e2e996d69ed90d3f384c8918a951735bae1c79015ce42"
-token = "MTQ3NTQ4MjkzODk1Mzk2MTcwMg.GT2Lba.U-d7WFsPx3UgYaxca-9xwP939iy1wJQdGw_Blo"
+token = "KEY_HOLDER"
 
 # TOKEN = os.getenv("DISCORD_TOKEN")
 

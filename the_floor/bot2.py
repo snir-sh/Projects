@@ -7,7 +7,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-TOKEN = "MTQ3NTQ4MjkzODk1Mzk2MTcwMg.GT2Lba.U-d7WFsPx3UgYaxca-9xwP939iy1wJQdGw_Blo"
+TOKEN = "KEY_HOLDER"
 
 intents = discord.Intents.default()
 bot = commands.Bot(command_prefix="!", intents=intents)

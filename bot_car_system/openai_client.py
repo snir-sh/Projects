@@ -1,6 +1,6 @@
 from openai import OpenAI, AsyncOpenAI
 
-api_key="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"
+api_key="sk-proj-KEY-HOLDER"
 
 client = OpenAI(api_key=api_key)
 
